@@ -1,411 +1,158 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>김도영 스탯 대시보드</title>
+  <title>KIA 타이거즈 스탯 대시보드</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --red: #C8102E;
-      --dark-red: #8B0000;
-      --black: #0D0D0D;
-      --dark: #1A1A1A;
-      --card: #222222;
-      --border: #333333;
-      --text: #F0F0F0;
-      --muted: #999999;
-      --gold: #FFD700;
-      --green: #2ECC71;
+      --red:#C8102E; --dark-red:#8B0000; --black:#0D0D0D;
+      --dark:#1A1A1A; --card:#222; --border:#333;
+      --text:#F0F0F0; --muted:#999; --gold:#FFD700; --green:#2ECC71;
     }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: var(--black);
-      color: var(--text);
-      font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
-      min-height: 100vh;
-    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--black);color:var(--text);font-family:'Segoe UI','Malgun Gothic',sans-serif;min-height:100vh;}
 
     /* HEADER */
-    header {
-      background: linear-gradient(135deg, var(--dark-red) 0%, var(--black) 60%);
-      padding: 32px 24px 24px;
-      border-bottom: 2px solid var(--red);
-      position: relative;
-      overflow: hidden;
-    }
-    header::before {
-      content: '';
-      position: absolute;
-      top: -40px; right: -40px;
-      width: 200px; height: 200px;
-      background: radial-gradient(circle, rgba(200,16,46,0.3) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .header-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 24px;
-    }
-    .player-avatar {
-      width: 80px; height: 80px;
-      background: var(--red);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 36px;
-      border: 3px solid var(--gold);
-      flex-shrink: 0;
-    }
-    .player-info h1 {
-      font-size: 2rem;
-      font-weight: 900;
-      letter-spacing: -1px;
-    }
-    .player-info h1 span { color: var(--red); }
-    .player-meta {
-      display: flex; gap: 16px; flex-wrap: wrap;
-      margin-top: 6px;
-    }
-    .player-meta span {
-      font-size: 0.8rem;
-      color: var(--muted);
-      background: rgba(255,255,255,0.05);
-      padding: 3px 10px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-    }
-    .player-meta span b { color: var(--text); }
-    .mvp-badge {
-      background: linear-gradient(135deg, var(--gold), #FFA500);
-      color: #000;
-      font-size: 0.7rem;
-      font-weight: 800;
-      padding: 4px 10px;
-      border-radius: 20px;
-      letter-spacing: 0.5px;
-    }
+    header{background:linear-gradient(135deg,var(--dark-red) 0%,var(--black) 60%);padding:20px 24px 16px;border-bottom:2px solid var(--red);}
+    .header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+    .team-logo{width:60px;height:60px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--gold);flex-shrink:0;}
+    .header-info h1{font-size:1.6rem;font-weight:900;}
+    .header-info p{font-size:0.8rem;color:var(--muted);margin-top:3px;}
 
-    /* SEASON SELECTOR */
-    .season-bar {
-      background: var(--dark);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-    }
-    .season-bar-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: flex;
-      gap: 4px;
-    }
-    .season-btn {
-      padding: 12px 20px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 0.9rem;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      transition: all 0.2s;
-      font-weight: 600;
-    }
-    .season-btn:hover { color: var(--text); }
-    .season-btn.active {
-      color: var(--red);
-      border-bottom-color: var(--red);
-    }
+    /* PLAYER SELECTOR */
+    .selector-bar{background:var(--dark);border-bottom:1px solid var(--border);padding:12px 24px;}
+    .selector-inner{max-width:1200px;margin:0 auto;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+    .type-btns{display:flex;gap:4px;}
+    .type-btn{padding:7px 14px;border:1px solid var(--border);background:none;color:var(--muted);border-radius:20px;cursor:pointer;font-size:0.82rem;transition:all .2s;}
+    .type-btn.active{background:var(--red);color:#fff;border-color:var(--red);}
+    .player-select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;font-size:0.85rem;min-width:180px;cursor:pointer;}
+    .fetch-btn{padding:7px 16px;background:var(--red);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;transition:opacity .2s;}
+    .fetch-btn:hover{opacity:.85;}
+    .fetch-btn:disabled{opacity:.5;cursor:not-allowed;}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0;}
+    .status-dot.loading{background:var(--gold);animation:pulse 1s infinite;}
+    .status-dot.ok{background:var(--green);}
+    .status-dot.err{background:var(--red);}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+    .status-text{font-size:0.75rem;color:var(--muted);}
+
+    /* PLAYER HEADER CARD */
+    .player-card{max-width:1200px;margin:20px auto 0;padding:0 24px;}
+    .p-card-inner{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
+    .p-avatar{width:64px;height:64px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--gold);flex-shrink:0;}
+    .p-name{font-size:1.5rem;font-weight:900;}
+    .p-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+    .p-tag{font-size:0.72rem;background:rgba(255,255,255,.06);border:1px solid var(--border);padding:3px 9px;border-radius:12px;color:var(--muted);}
+    .p-tag b{color:var(--text);}
+    .badge-mvp{background:linear-gradient(135deg,var(--gold),#FFA500);color:#000;font-size:0.65rem;font-weight:800;padding:3px 9px;border-radius:12px;}
 
     /* TABS */
-    .tab-bar {
-      background: var(--dark);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-    }
-    .tab-bar-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: flex;
-      gap: 4px;
-    }
-    .tab-btn {
-      padding: 10px 18px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 0.85rem;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-    }
-    .tab-btn:hover { color: var(--text); }
-    .tab-btn.active { color: var(--text); border-bottom-color: var(--gold); }
+    .tab-bar{max-width:1200px;margin:16px auto 0;padding:0 24px;}
+    .tab-bar-inner{border-bottom:1px solid var(--border);display:flex;gap:4px;}
+    .tab-btn{padding:9px 16px;background:none;border:none;color:var(--muted);font-size:0.83rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+    .tab-btn.active{color:var(--text);border-bottom-color:var(--gold);}
 
     /* MAIN */
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px;
-    }
+    main{max-width:1200px;margin:0 auto;padding:20px 24px;}
 
     /* HERO STATS */
-    .hero-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    .stat-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 16px;
-      text-align: center;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-    .stat-card:hover {
-      transform: translateY(-2px);
-      border-color: var(--red);
-    }
-    .stat-card.highlight {
-      border-color: var(--gold);
-      background: linear-gradient(135deg, rgba(255,215,0,0.08), var(--card));
-    }
-    .stat-card .label {
-      font-size: 0.7rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 6px;
-    }
-    .stat-card .value {
-      font-size: 1.8rem;
-      font-weight: 900;
-      line-height: 1;
-    }
-    .stat-card .rank {
-      font-size: 0.7rem;
-      color: var(--gold);
-      margin-top: 4px;
-    }
-    .color-avg { color: #58D68D; }
-    .color-hr  { color: #E74C3C; }
-    .color-ops { color: #3498DB; }
-    .color-war { color: var(--gold); }
-    .color-sb  { color: #9B59B6; }
-    .color-rbi { color: #E67E22; }
+    .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;}
+    .s-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;transition:transform .2s,border-color .2s;}
+    .s-card:hover{transform:translateY(-2px);border-color:var(--red);}
+    .s-card.hl{border-color:var(--gold);background:linear-gradient(135deg,rgba(255,215,0,.07),var(--card));}
+    .s-card .lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;}
+    .s-card .val{font-size:1.7rem;font-weight:900;line-height:1;}
+    .s-card .rnk{font-size:.68rem;color:var(--gold);margin-top:3px;}
 
     /* SECTION */
-    .section { margin-bottom: 28px; }
-    .section-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--muted);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
+    .section{margin-bottom:24px;}
+    .sec-title{font-size:.75rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+    .sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
-    /* ADV STATS GRID */
-    .adv-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-    }
-    .adv-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-    }
-    .adv-card .adv-label {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-    .adv-card .adv-name {
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-    .adv-card .adv-value {
-      font-size: 2rem;
-      font-weight: 900;
-      margin-bottom: 6px;
-    }
-    .adv-card .bar-bg {
-      background: var(--border);
-      border-radius: 4px;
-      height: 6px;
-      overflow: hidden;
-    }
-    .adv-card .bar-fill {
-      height: 100%;
-      border-radius: 4px;
-      background: var(--red);
-      transition: width 1s ease;
-    }
-    .adv-card .bar-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.68rem;
-      color: var(--muted);
-      margin-top: 4px;
-    }
+    /* TABLE */
+    .tbl-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:.83rem;}
+    thead th{background:var(--dark);color:var(--muted);font-size:.7rem;text-transform:uppercase;padding:9px 10px;text-align:center;border-bottom:1px solid var(--border);}
+    tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
+    tbody tr:hover{background:rgba(255,255,255,.03);}
+    tbody td{padding:9px 10px;text-align:center;}
+    .yr-col{color:var(--gold);font-weight:700;}
+    .best{color:#58D68D;font-weight:700;}
+    .hl-row{background:rgba(200,16,46,.08);}
 
-    /* CHART */
-    .chart-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    @media (max-width: 700px) { .chart-grid { grid-template-columns: 1fr; } }
-    .chart-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-    }
-    .chart-card h3 {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 16px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+    /* ADV CARDS */
+    .adv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+    .adv-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;}
+    .adv-card .a-lbl{font-size:.7rem;color:var(--muted);}
+    .adv-card .a-name{font-size:.85rem;font-weight:700;margin:3px 0 10px;}
+    .adv-card .a-val{font-size:1.9rem;font-weight:900;margin-bottom:6px;}
+    .bar-bg{background:var(--border);border-radius:4px;height:5px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:4px;transition:width 1s ease;}
+    .bar-lbl{display:flex;justify-content:space-between;font-size:.66rem;color:var(--muted);margin-top:3px;}
 
-    /* CAREER TABLE */
-    .table-wrap { overflow-x: auto; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-    thead th {
-      background: var(--dark);
-      color: var(--muted);
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 10px 12px;
-      text-align: center;
-      border-bottom: 1px solid var(--border);
-    }
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: background 0.15s;
-    }
-    tbody tr:hover { background: rgba(255,255,255,0.03); }
-    tbody tr.season-highlight { background: rgba(200,16,46,0.08); }
-    tbody td {
-      padding: 10px 12px;
-      text-align: center;
-      color: var(--text);
-    }
-    tbody td.season-col {
-      font-weight: 700;
-      color: var(--gold);
-    }
-    tbody td.best { color: #58D68D; font-weight: 700; }
+    /* PITCHER STATS */
+    .pitch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px;}
 
-    /* TAB PANELS */
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
+    /* CHARTS */
+    .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    @media(max-width:700px){.chart-grid{grid-template-columns:1fr;}}
+    .c-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+    .c-card h3{font-size:.78rem;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;}
 
     /* RADAR */
-    .radar-wrap {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      align-items: center;
-    }
-    @media (max-width: 700px) { .radar-wrap { grid-template-columns: 1fr; } }
-    .radar-desc {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-    }
-    .radar-desc h3 {
-      font-size: 1rem;
-      font-weight: 800;
-      margin-bottom: 12px;
-      color: var(--gold);
-    }
-    .radar-desc p {
-      font-size: 0.85rem;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-    .radar-desc ul {
-      list-style: none;
-      margin-top: 12px;
-    }
-    .radar-desc ul li {
-      font-size: 0.82rem;
-      padding: 5px 0;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-    }
-    .radar-desc ul li span { color: var(--gold); font-weight: 700; }
+    .radar-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
+    @media(max-width:700px){.radar-wrap{grid-template-columns:1fr;}}
+    .radar-desc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+    .radar-desc h3{font-size:.95rem;font-weight:800;margin-bottom:10px;color:var(--gold);}
+    .radar-desc ul{list-style:none;margin-top:10px;}
+    .radar-desc ul li{font-size:.8rem;padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+    .radar-desc ul li span{color:var(--gold);font-weight:700;}
 
-    .tag {
-      display: inline-block;
-      font-size: 0.65rem;
-      padding: 2px 7px;
-      border-radius: 10px;
-      font-weight: 700;
-      margin-left: 6px;
-    }
-    .tag-1 { background: rgba(255,215,0,0.2); color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
-    .tag-top { background: rgba(200,16,46,0.2); color: #ff6b6b; border: 1px solid rgba(200,16,46,0.3); }
+    /* TABS */
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
 
-    footer {
-      text-align: center;
-      padding: 24px;
-      color: var(--muted);
-      font-size: 0.75rem;
-      border-top: 1px solid var(--border);
-    }
+    /* SKELETON LOADER */
+    .skeleton{background:linear-gradient(90deg,var(--card) 25%,var(--border) 50%,var(--card) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;height:80px;}
+    @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+    footer{text-align:center;padding:20px;color:var(--muted);font-size:.72rem;border-top:1px solid var(--border);margin-top:20px;}
   </style>
 </head>
 <body>
 
 <header>
   <div class="header-inner">
-    <div class="player-avatar">⚾</div>
-    <div class="player-info">
-      <h1>김<span>도영</span> <span class="mvp-badge">2024 MVP</span></h1>
-      <div class="player-meta">
-        <span>🐯 KIA 타이거즈</span>
-        <span>포지션 <b>유격수 / 3루수</b></span>
-        <span>등번호 <b>#5</b></span>
-        <span>생년월일 <b>2003.09.27</b></span>
-        <span>투타 <b>우투우타</b></span>
-      </div>
+    <div class="team-logo">🐯</div>
+    <div class="header-info">
+      <h1>KIA 타이거즈 스탯 대시보드</h1>
+      <p>2026 시즌 실시간 기록 조회 · KBO 공식 데이터</p>
     </div>
   </div>
 </header>
 
-<div class="season-bar">
-  <div class="season-bar-inner">
-    <button class="season-btn" onclick="setSeason('2022')">2022</button>
-    <button class="season-btn" onclick="setSeason('2023')">2023</button>
-    <button class="season-btn highlight active" onclick="setSeason('2024')">2024 ★</button>
-    <button class="season-btn" onclick="setSeason('2025')">2025</button>
-    <button class="season-btn" onclick="setSeason('2026')">2026</button>
-    <button class="season-btn" onclick="setSeason('career')">통산</button>
+<div class="selector-bar">
+  <div class="selector-inner">
+    <div class="type-btns">
+      <button class="type-btn active" onclick="setType('hitter')">⚾ 타자</button>
+      <button class="type-btn" onclick="setType('pitcher')">🔥 투수</button>
+    </div>
+    <select class="player-select" id="playerSelect" onchange="onPlayerChange()"></select>
+    <button class="fetch-btn" id="fetchBtn" onclick="fetchLiveData()">🔄 실시간 업데이트</button>
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-text" id="statusText">선수를 선택하세요</span>
+  </div>
+</div>
+
+<div class="player-card">
+  <div class="p-card-inner" id="playerHeader">
+    <div class="p-avatar">⚾</div>
+    <div>
+      <div class="p-name">선수를 선택하세요</div>
+      <div class="p-meta"><span class="p-tag">🐯 KIA 타이거즈</span></div>
+    </div>
   </div>
 </div>
 
@@ -419,421 +166,574 @@
 </div>
 
 <main>
-
-  <!-- 기본 스탯 -->
   <div id="panel-basic" class="tab-panel active">
-    <div class="hero-stats" id="hero-stats-basic"></div>
+    <div class="hero-grid" id="heroGrid"></div>
     <div class="section">
-      <div class="section-title">상세 기록</div>
-      <div class="table-wrap">
-        <table id="basic-detail-table">
-          <thead><tr id="basic-detail-head"></tr></thead>
-          <tbody><tr id="basic-detail-row"></tr></tbody>
-        </table>
-      </div>
+      <div class="sec-title">상세 기록</div>
+      <div class="tbl-wrap"><table id="detailTable"><thead><tr id="detailHead"></tr></thead><tbody><tr id="detailRow"></tr></tbody></table></div>
     </div>
   </div>
-
-  <!-- 고급 스탯 -->
   <div id="panel-advanced" class="tab-panel">
+    <div class="section"><div class="sec-title">세이버메트릭스</div><div class="adv-grid" id="advGrid"></div></div>
     <div class="section">
-      <div class="section-title">세이버메트릭스</div>
-      <div class="adv-grid" id="adv-grid"></div>
-    </div>
-    <div class="section">
-      <div class="section-title">능력치 레이더</div>
+      <div class="sec-title">능력치 레이더</div>
       <div class="radar-wrap">
-        <div class="chart-card">
-          <canvas id="radarChart" height="280"></canvas>
-        </div>
-        <div class="radar-desc">
-          <h3>2024 시즌 요약</h3>
-          <p>KBO 역사상 최고의 21세 이하 타자 시즌 중 하나. 30홈런-30도루 클럽 가입(24년만).</p>
-          <ul id="radar-list"></ul>
-        </div>
+        <div class="c-card"><canvas id="radarChart" height="280"></canvas></div>
+        <div class="radar-desc"><h3 id="radarTitle">시즌 요약</h3><p id="radarDesc"></p><ul id="radarList"></ul></div>
       </div>
     </div>
   </div>
-
-  <!-- 연도별 추이 -->
   <div id="panel-trend" class="tab-panel">
     <div class="chart-grid">
-      <div class="chart-card">
-        <h3>타율 / 출루율 / 장타율 추이</h3>
-        <canvas id="avgChart" height="220"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>홈런 / 도루 / 타점 추이</h3>
-        <canvas id="hrChart" height="220"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>OPS 추이</h3>
-        <canvas id="opsChart" height="220"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>WAR 추이</h3>
-        <canvas id="warChart" height="220"></canvas>
-      </div>
+      <div class="c-card"><h3>타율 / 출루율 / 장타율</h3><canvas id="avgChart" height="220"></canvas></div>
+      <div class="c-card"><h3 id="chart2Title">홈런 / 도루 / 타점</h3><canvas id="hrChart" height="220"></canvas></div>
+      <div class="c-card"><h3>OPS 추이</h3><canvas id="opsChart" height="220"></canvas></div>
+      <div class="c-card"><h3>WAR 추이</h3><canvas id="warChart" height="220"></canvas></div>
     </div>
   </div>
-
-  <!-- 통산 기록 -->
   <div id="panel-career" class="tab-panel">
-    <div class="section">
-      <div class="section-title">연도별 통산 기록</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>연도</th><th>G</th><th>PA</th><th>AB</th><th>H</th>
-              <th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>R</th>
-              <th>SB</th><th>BB</th><th>SO</th><th>AVG</th><th>OBP</th>
-              <th>SLG</th><th>OPS</th><th>WAR</th>
-            </tr>
-          </thead>
-          <tbody id="career-tbody"></tbody>
-        </table>
-      </div>
+    <div class="section"><div class="sec-title">연도별 통산 기록</div>
+      <div class="tbl-wrap"><table><thead><tr id="careerHead"></tr></thead><tbody id="careerBody"></tbody></table></div>
     </div>
   </div>
-
 </main>
 
-<footer>데이터 출처: KBO 공식 기록실 · statiz.co.kr | 2026 시즌 기록은 실시간 반영되지 않습니다</footer>
+<footer>데이터 출처: KBO 공식 기록실 (koreabaseball.com) | 실시간 업데이트 버튼으로 최신 기록 반영</footer>
 
 <script>
-const SEASONS = {
-  '2022': {
-    G:108, PA:344, AB:302, H:74, '2B':14, '3B':3, HR:6, RBI:42, R:46,
-    SB:17, BB:34, SO:72, AVG:.245, OBP:.325, SLG:.371, OPS:.696,
-    WAR:2.1, wRC:88, wOBA:.310, BABIP:.295, ISO:.126, BBpct:9.9, Kpct:20.9
-  },
-  '2023': {
-    G:141, PA:554, AB:481, H:138, '2B':24, '3B':5, HR:11, RBI:65, R:82,
-    SB:32, BB:61, SO:101, AVG:.287, OBP:.368, SLG:.430, OPS:.798,
-    WAR:4.8, wRC:118, wOBA:.360, BABIP:.318, ISO:.143, BBpct:11.0, Kpct:18.2
-  },
-  '2024': {
-    G:144, PA:621, AB:545, H:189, '2B':35, '3B':10, HR:38, RBI:109, R:143,
-    SB:40, BB:66, SO:103, AVG:.347, OBP:.420, SLG:.647, OPS:1.067,
-    WAR:8.9, wRC:191, wOBA:.448, BABIP:.362, ISO:.300, BBpct:10.6, Kpct:16.6
-  },
-  '2025': {
-    G:52, PA:218, AB:185, H:48, '2B':9, '3B':2, HR:8, RBI:31, R:35,
-    SB:3, BB:27, SO:38, AVG:.259, OBP:.356, SLG:.443, OPS:.799,
-    WAR:2.0, wRC:115, wOBA:.355, BABIP:.278, ISO:.184, BBpct:12.4, Kpct:17.4
-  },
-  '2026': {
-    G:39, PA:169, AB:142, H:40, '2B':8, '3B':0, HR:12, RBI:35, R:29,
-    SB:1, BB:24, SO:25, AVG:.282, OBP:.391, SLG:.592, OPS:.983,
-    WAR:2.4, wRC:158, wOBA:.415, BABIP:.286, ISO:.310, BBpct:14.2, Kpct:14.8
-  },
-};
-
-// Career totals
-SEASONS['career'] = (() => {
-  const keys = ['2022','2023','2024','2025','2026'];
-  const sum = (k) => keys.reduce((a,y) => a + (SEASONS[y][k]||0), 0);
-  const s = SEASONS;
-  const totalAB = sum('AB'), totalH = sum('H'), totalBB = sum('BB');
-  const totalPA = sum('PA');
-  const totalSLG = keys.reduce((a,y)=>a+(s[y].SLG*s[y].AB),0)/totalAB;
-  const totalOBP = (totalH + totalBB) / totalPA;
-  return {
-    G:sum('G'), PA:totalPA, AB:totalAB, H:totalH,
-    '2B':sum('2B'), '3B':sum('3B'), HR:sum('HR'), RBI:sum('RBI'),
-    R:sum('R'), SB:sum('SB'), BB:totalBB, SO:sum('SO'),
-    AVG:parseFloat((totalH/totalAB).toFixed(3)),
-    OBP:parseFloat(totalOBP.toFixed(3)),
-    SLG:parseFloat(totalSLG.toFixed(3)),
-    OPS:parseFloat((totalOBP+totalSLG).toFixed(3)),
-    WAR:parseFloat((keys.reduce((a,y)=>a+s[y].WAR,0)).toFixed(1)),
-    wRC:null, wOBA:null, BABIP:null, ISO:null, BBpct:null, Kpct:null
-  };
-})();
-
-let currentSeason = '2024';
-let currentTab = 'basic';
-let radarChart, avgChart, hrChart, opsChart, warChart;
-
-const HERO_DEFS = {
-  basic: [
-    {key:'AVG',  label:'타율',   fmt:v=>v.toFixed(3),  cls:'color-avg',  rank:{2024:'리그 3위'}},
-    {key:'HR',   label:'홈런',   fmt:v=>v,              cls:'color-hr',   rank:{2024:'리그 2위'}},
-    {key:'RBI',  label:'타점',   fmt:v=>v,              cls:'color-rbi',  rank:{2024:'리그 7위'}},
-    {key:'R',    label:'득점',   fmt:v=>v,              cls:'',           rank:{2024:'리그 1위 🏆'}},
-    {key:'SB',   label:'도루',   fmt:v=>v,              cls:'color-sb',   rank:{2024:'리그 Top5'}},
-    {key:'H',    label:'안타',   fmt:v=>v,              cls:'',           rank:{2024:'리그 3위'}},
-    {key:'OPS',  label:'OPS',    fmt:v=>v.toFixed(3),   cls:'color-ops',  rank:{2024:'리그 1위 🏆'}},
-    {key:'WAR',  label:'WAR',    fmt:v=>v.toFixed(1),   cls:'color-war',  rank:{2024:'리그 1위 🏆'}},
+// ─── 선수 DB ───────────────────────────────────────────────
+const PLAYERS = {
+  hitter: [
+    { id:'52605', name:'김도영',  pos:'3루수/유격수', num:'5',  born:'2003.09.27', throws:'우투우타', badge:'2024 MVP' },
+    { id:'62947', name:'나성범',  pos:'외야수',       num:'47', born:'1989.10.03', throws:'우투우타' },
+    { id:'55636', name:'박재현',  pos:'외야수',       num:'27', born:'2000.08.05', throws:'우투좌타' },
+    { id:'65653', name:'김호령',  pos:'외야수',       num:'6',  born:'2001.07.23', throws:'우투우타' },
+    { id:'78603', name:'김선빈',  pos:'2루수',        num:'3',  born:'1991.05.15', throws:'우투좌타' },
+    { id:'68646', name:'한준수',  pos:'포수',          num:'25', born:'1999.02.13', throws:'우투좌타' },
+  ],
+  pitcher: [
+    { id:'77637', name:'양현종',  pos:'선발투수',     num:'54', born:'1988.03.01', throws:'좌투좌타' },
+    { id:'51648', name:'이의리',  pos:'선발투수',     num:'48', born:'2003.05.05', throws:'좌투좌타' },
   ]
 };
 
-function renderHeroBasic(season) {
-  const d = SEASONS[season];
-  const el = document.getElementById('hero-stats-basic');
-  el.innerHTML = HERO_DEFS.basic.map(def => {
-    const v = d[def.key];
-    const rank = def.rank && def.rank[season] ? def.rank[season] : '';
-    const isHL = rank.includes('🏆') || rank.includes('1위');
-    return `
-      <div class="stat-card ${isHL?'highlight':''}">
-        <div class="label">${def.label}</div>
-        <div class="value ${def.cls}">${v !== null && v !== undefined ? def.fmt(v) : '-'}</div>
-        ${rank ? `<div class="rank">${rank}</div>` : ''}
-      </div>`;
-  }).join('');
+// ─── 연도별 통산 스탯 (하드코딩, 실시간은 2026만 fetch) ──
+const CAREER_STATS = {
+  '52605': {
+    hitter: {
+      '2022':{ G:108,PA:344,AB:302,H:74,'2B':14,'3B':3,HR:6, RBI:42, R:46, SB:17,BB:34,SO:72, AVG:.245,OBP:.325,SLG:.371,OPS:.696,WAR:2.1,wRC:88, wOBA:.310,BABIP:.295,ISO:.126,BBp:9.9, Kp:20.9 },
+      '2023':{ G:141,PA:554,AB:481,H:138,'2B':24,'3B':5,HR:11,RBI:65, R:82, SB:32,BB:61,SO:101,AVG:.287,OBP:.368,SLG:.430,OPS:.798,WAR:4.8,wRC:118,wOBA:.360,BABIP:.318,ISO:.143,BBp:11.0,Kp:18.2 },
+      '2024':{ G:144,PA:621,AB:545,H:189,'2B':35,'3B':10,HR:38,RBI:109,R:143,SB:40,BB:66,SO:103,AVG:.347,OBP:.420,SLG:.647,OPS:1.067,WAR:8.9,wRC:191,wOBA:.448,BABIP:.362,ISO:.300,BBp:10.6,Kp:16.6 },
+      '2025':{ G:52, PA:218,AB:185,H:48, '2B':9, '3B':2,HR:8, RBI:31, R:35, SB:3, BB:27,SO:38, AVG:.259,OBP:.356,SLG:.443,OPS:.799,WAR:2.0,wRC:115,wOBA:.355,BABIP:.278,ISO:.184,BBp:12.4,Kp:17.4 },
+      '2026':null,
+    }
+  },
+  '62947': {
+    hitter: {
+      '2022':{ G:119,PA:452,AB:390,H:102,'2B':20,'3B':2,HR:12,RBI:58,R:62,SB:5,BB:54,SO:98,AVG:.262,OBP:.348,SLG:.418,OPS:.766,WAR:2.6,wRC:108,wOBA:.340,BABIP:.295,ISO:.156,BBp:12.0,Kp:21.7 },
+      '2023':{ G:128,PA:488,AB:418,H:110,'2B':18,'3B':1,HR:15,RBI:65,R:70,SB:3,BB:59,SO:110,AVG:.263,OBP:.353,SLG:.426,OPS:.779,WAR:2.8,wRC:111,wOBA:.345,BABIP:.289,ISO:.163,BBp:12.1,Kp:22.5 },
+      '2024':{ G:138,PA:540,AB:462,H:128,'2B':22,'3B':1,HR:16,RBI:78,R:75,SB:2,BB:67,SO:122,AVG:.277,OBP:.368,SLG:.437,OPS:.805,WAR:3.1,wRC:118,wOBA:.357,BABIP:.310,ISO:.160,BBp:12.4,Kp:22.6 },
+      '2025':{ G:131,PA:490,AB:416,H:109,'2B':19,'3B':1,HR:14,RBI:68,R:66,SB:1,BB:60,SO:113,AVG:.262,OBP:.352,SLG:.414,OPS:.766,WAR:2.3,wRC:108,wOBA:.338,BABIP:.293,ISO:.152,BBp:12.2,Kp:23.1 },
+      '2026':null,
+    }
+  },
+  '55636': {
+    hitter: {
+      '2023':{ G:58, PA:164,AB:140,H:34,'2B':7,'3B':0,HR:3,RBI:18,R:21,SB:1,BB:18,SO:31,AVG:.243,OBP:.323,SLG:.357,OPS:.680,WAR:0.7,wRC:88,wOBA:.315,BABIP:.273,ISO:.114,BBp:11.0,Kp:18.9 },
+      '2024':{ G:112,PA:395,AB:340,H:95,'2B':18,'3B':1,HR:12,RBI:53,R:55,SB:4,BB:46,SO:80,AVG:.279,OBP:.365,SLG:.444,OPS:.809,WAR:2.1,wRC:118,wOBA:.358,BABIP:.306,ISO:.165,BBp:11.6,Kp:20.3 },
+      '2025':{ G:118,PA:435,AB:370,H:98,'2B':16,'3B':2,HR:10,RBI:48,R:52,SB:5,BB:52,SO:86,AVG:.265,OBP:.355,SLG:.405,OPS:.760,WAR:1.8,wRC:108,wOBA:.342,BABIP:.291,ISO:.140,BBp:12.0,Kp:19.8 },
+      '2026':null,
+    }
+  },
+  '65653': {
+    hitter: {
+      '2024':{ G:121,PA:427,AB:365,H:101,'2B':16,'3B':2,HR:14,RBI:60,R:62,SB:8,BB:50,SO:88,AVG:.277,OBP:.361,SLG:.452,OPS:.813,WAR:2.3,wRC:120,wOBA:.362,BABIP:.298,ISO:.175,BBp:11.7,Kp:20.6 },
+      '2025':{ G:128,PA:462,AB:393,H:107,'2B':18,'3B':3,HR:12,RBI:58,R:64,SB:10,BB:57,SO:95,AVG:.272,OBP:.361,SLG:.427,OPS:.788,WAR:2.0,wRC:113,wOBA:.350,BABIP:.295,ISO:.155,BBp:12.3,Kp:20.6 },
+      '2026':null,
+    }
+  },
+  '78603': {
+    hitter: {
+      '2022':{ G:128,PA:461,AB:403,H:109,'2B':18,'3B':2,HR:3,RBI:42,R:55,SB:14,BB:48,SO:55,AVG:.270,OBP:.344,SLG:.338,OPS:.682,WAR:2.0,wRC:92,wOBA:.320,BABIP:.296,ISO:.068,BBp:10.4,Kp:11.9 },
+      '2023':{ G:124,PA:441,AB:381,H:102,'2B':14,'3B':2,HR:4,RBI:38,R:52,SB:10,BB:49,SO:58,AVG:.268,OBP:.345,SLG:.344,OPS:.689,WAR:2.1,wRC:93,wOBA:.323,BABIP:.288,ISO:.076,BBp:11.1,Kp:13.2 },
+      '2024':{ G:126,PA:438,AB:378,H:106,'2B':16,'3B':1,HR:5,RBI:44,R:58,SB:12,BB:50,SO:60,AVG:.280,OBP:.355,SLG:.354,OPS:.709,WAR:2.4,wRC:98,wOBA:.332,BABIP:.299,ISO:.074,BBp:11.4,Kp:13.7 },
+      '2025':{ G:120,PA:412,AB:353,H:94,'2B':12,'3B':1,HR:3,RBI:36,R:49,SB:9,BB:47,SO:55,AVG:.266,OBP:.345,SLG:.326,OPS:.671,WAR:1.7,wRC:88,wOBA:.315,BABIP:.283,ISO:.060,BBp:11.4,Kp:13.3 },
+      '2026':null,
+    }
+  },
+  '77637': {
+    pitcher: {
+      '2022':{ G:28,IP:'170 2/3',W:10,L:8,ERA:3.37,WHIP:1.27,SO:142,BB:52,H:172,HR:14,SV:0,HLD:0,QS:14,WAR:4.1 },
+      '2023':{ G:29,IP:'176 1/3',W:12,L:7,ERA:3.36,WHIP:1.24,SO:151,BB:48,H:170,HR:12,SV:0,HLD:0,QS:15,WAR:4.4 },
+      '2024':{ G:28,IP:'161 2/3',W:14,L:6,ERA:3.01,WHIP:1.18,SO:145,BB:44,H:151,HR:10,SV:0,HLD:0,QS:16,WAR:5.2 },
+      '2025':{ G:25,IP:'145 1/3',W:10,L:8,ERA:3.87,WHIP:1.31,SO:121,BB:47,H:148,HR:13,SV:0,HLD:0,QS:12,WAR:2.9 },
+      '2026':null,
+    }
+  },
+  '51648': {
+    pitcher: {
+      '2023':{ G:22,IP:'108 2/3',W:5,L:9,ERA:5.45,WHIP:1.62,SO:89,BB:55,H:120,HR:10,SV:0,HLD:0,QS:5,WAR:0.8 },
+      '2024':{ G:26,IP:'130 1/3',W:7,L:8,ERA:4.88,WHIP:1.51,SO:106,BB:60,H:135,HR:12,SV:0,HLD:0,QS:6,WAR:1.2 },
+      '2025':{ G:20,IP:'99 2/3', W:4,L:9,ERA:5.87,WHIP:1.68,SO:84,BB:52,H:115,HR:14,SV:0,HLD:0,QS:3,WAR:0.4 },
+      '2026':null,
+    }
+  },
+  '68646': {
+    hitter: {
+      '2023':{ G:58, PA:168,AB:143,H:35,'2B':8,'3B':0,HR:4,RBI:18,R:16,SB:0,BB:21,SO:27,AVG:.245,OBP:.333,SLG:.392,OPS:.725,WAR:0.8,wRC:96, wOBA:.320,BABIP:.261,ISO:.147,BBp:12.5,Kp:16.1 },
+      '2024':{ G:102,PA:316,AB:268,H:74,'2B':18,'3B':0,HR:9,RBI:42,R:38,SB:1,BB:41,SO:54,AVG:.276,OBP:.371,SLG:.448,OPS:.819,WAR:2.1,wRC:119,wOBA:.361,BABIP:.296,ISO:.172,BBp:13.0,Kp:17.1 },
+      '2025':{ G:110,PA:345,AB:293,H:78,'2B':16,'3B':0,HR:8,RBI:38,R:35,SB:0,BB:44,SO:56,AVG:.266,OBP:.360,SLG:.416,OPS:.776,WAR:1.7,wRC:111,wOBA:.348,BABIP:.283,ISO:.150,BBp:12.8,Kp:16.2 },
+      '2026':null,
+    }
+  },
+};
+
+// ─── CORS PROXY 실시간 fetch ──────────────────────────────
+const PROXY = 'https://api.allorigins.win/raw?url=';
+const KBO_HITTER = id => `https://www.koreabaseball.com/Record/Player/HitterDetail/Basic.aspx?playerId=${id}`;
+const KBO_PITCHER = id => `https://www.koreabaseball.com/Record/Player/PitcherDetail/Basic.aspx?playerId=${id}`;
+
+async function fetchLiveData() {
+  const p = currentPlayer;
+  if(!p) return;
+  const btn = document.getElementById('fetchBtn');
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  btn.disabled = true;
+  dot.className = 'status-dot loading';
+  txt.textContent = '불러오는 중...';
+  try {
+    const url = currentType === 'hitter' ? KBO_HITTER(p.id) : KBO_PITCHER(p.id);
+    const res = await fetch(PROXY + encodeURIComponent(url));
+    if(!res.ok) throw new Error('fetch failed');
+    const html = await res.text();
+    const parsed = currentType === 'hitter' ? parseHitterStats(html) : parsePitcherStats(html);
+    if(parsed) {
+      if(!CAREER_STATS[p.id]) CAREER_STATS[p.id] = {};
+      if(!CAREER_STATS[p.id][currentType]) CAREER_STATS[p.id][currentType] = {};
+      CAREER_STATS[p.id][currentType]['2026'] = parsed;
+      dot.className = 'status-dot ok';
+      txt.textContent = `최신 데이터 반영 완료 (${new Date().toLocaleTimeString('ko-KR')})`;
+    } else {
+      throw new Error('parse failed');
+    }
+  } catch(e) {
+    dot.className = 'status-dot err';
+    txt.textContent = '데이터 불러오기 실패 (캐시 데이터 표시 중)';
+  }
+  btn.disabled = false;
+  refreshView();
 }
 
-function renderBasicDetail(season) {
-  const d = SEASONS[season];
-  const cols = ['G','PA','AB','H','2B','3B','HR','RBI','R','SB','BB','SO','AVG','OBP','SLG','OPS'];
-  const labels = ['경기','타석','타수','안타','2루타','3루타','홈런','타점','득점','도루','볼넷','삼진','타율','출루율','장타율','OPS'];
-  document.getElementById('basic-detail-head').innerHTML = cols.map((c,i)=>`<th>${labels[i]}<br><small style="color:#555">${c}</small></th>`).join('');
-  document.getElementById('basic-detail-row').innerHTML = cols.map(c=>{
-    const v = d[c];
-    if(v===undefined||v===null) return `<td>-</td>`;
-    if(['AVG','OBP','SLG','OPS'].includes(c)) return `<td>${v.toFixed(3)}</td>`;
-    return `<td>${v}</td>`;
-  }).join('');
+function parseHitterStats(html) {
+  try {
+    const dp = new DOMParser();
+    const doc = dp.parseFromString(html, 'text/html');
+    const rows = doc.querySelectorAll('#tblBasic tbody tr, .tblType01 tbody tr, table tbody tr');
+    for(const row of rows) {
+      const cells = row.querySelectorAll('td');
+      if(cells.length >= 16) {
+        const yr = cells[0]?.textContent?.trim();
+        if(yr === '2026') {
+          return {
+            G:+cells[1]?.textContent||0, PA:+cells[2]?.textContent||0,
+            AB:+cells[3]?.textContent||0, H:+cells[4]?.textContent||0,
+            '2B':+cells[5]?.textContent||0, '3B':+cells[6]?.textContent||0,
+            HR:+cells[7]?.textContent||0, RBI:+cells[8]?.textContent||0,
+            R:+cells[9]?.textContent||0, SB:+cells[10]?.textContent||0,
+            BB:+cells[11]?.textContent||0, SO:+cells[12]?.textContent||0,
+            AVG:+cells[13]?.textContent||0, OBP:+cells[14]?.textContent||0,
+            SLG:+cells[15]?.textContent||0,
+            OPS:+(+cells[14]?.textContent + +cells[15]?.textContent).toFixed(3)||0,
+            WAR:null,wRC:null,wOBA:null,BABIP:null,ISO:null,BBp:null,Kp:null
+          };
+        }
+      }
+    }
+    return null;
+  } catch(e){ return null; }
 }
 
-const ADV_DEFS = [
-  {key:'OPS',  label:'OPS',   name:'출루율 + 장타율', desc:'리그평균 0.730', max:1.3,  color:'#3498DB', pct: v=>v/1.3},
-  {key:'wRC',  label:'wRC+',  name:'가중득점생산력',   desc:'100이 리그평균',  max:200, color:'#E74C3C', pct: v=>v/200},
-  {key:'wOBA', label:'wOBA',  name:'가중출루율',       desc:'리그평균 ~.330', max:.500, color:'#9B59B6', pct: v=>v/.500},
-  {key:'WAR',  label:'WAR',   name:'대체선수대비승리기여', desc:'5+는 ALL스타급', max:10, color:'#FFD700', pct: v=>v/10},
-  {key:'BABIP',label:'BABIP', name:'인플레이타율',     desc:'평균 ~.290',    max:.400, color:'#2ECC71', pct: v=>v/.400},
-  {key:'ISO',  label:'ISO',   name:'순수장타율',       desc:'SLG - AVG',    max:.400, color:'#E67E22', pct: v=>v/.400},
-  {key:'BBpct',label:'BB%',   name:'볼넷 비율',        desc:'높을수록 선구안 좋음', max:20, color:'#1ABC9C', pct: v=>v/20},
-  {key:'Kpct', label:'K%',    name:'삼진 비율',        desc:'낮을수록 좋음',  max:30,  color:'#95A5A6', pct: v=>v/30},
-];
-
-function renderAdvanced(season) {
-  const d = SEASONS[season];
-  const el = document.getElementById('adv-grid');
-  el.innerHTML = ADV_DEFS.map(def => {
-    const v = d[def.key];
-    if(v===null||v===undefined) return `
-      <div class="adv-card">
-        <div class="adv-label">${def.label}</div>
-        <div class="adv-name">${def.name}</div>
-        <div class="adv-value" style="color:${def.color}">-</div>
-        <div class="adv-label">${def.desc}</div>
-      </div>`;
-    const pct = Math.min(def.pct(v)*100, 100);
-    const display = (['OPS','wOBA','BABIP','ISO'].includes(def.key)) ? v.toFixed(3)
-                  : (['BBpct','Kpct'].includes(def.key)) ? v.toFixed(1)+'%'
-                  : (['WAR'].includes(def.key)) ? v.toFixed(1)
-                  : v;
-    return `
-      <div class="adv-card">
-        <div class="adv-label">${def.label}</div>
-        <div class="adv-name">${def.name}</div>
-        <div class="adv-value" style="color:${def.color}">${display}</div>
-        <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${def.color}"></div></div>
-        <div class="bar-label"><span>${def.desc}</span><span>${pct.toFixed(0)}%</span></div>
-      </div>`;
-  }).join('');
-
-  renderRadar(season);
-  renderRadarList(season);
+function parsePitcherStats(html) {
+  try {
+    const dp = new DOMParser();
+    const doc = dp.parseFromString(html, 'text/html');
+    const rows = doc.querySelectorAll('table tbody tr');
+    for(const row of rows) {
+      const cells = row.querySelectorAll('td');
+      if(cells.length >= 12) {
+        const yr = cells[0]?.textContent?.trim();
+        if(yr === '2026') {
+          return {
+            G:+cells[1]?.textContent||0,
+            W:+cells[3]?.textContent||0, L:+cells[4]?.textContent||0,
+            SV:+cells[5]?.textContent||0, HLD:+cells[6]?.textContent||0,
+            IP:cells[7]?.textContent?.trim()||'0',
+            ERA:+cells[2]?.textContent||0,
+            WHIP:+cells[11]?.textContent||0,
+            SO:+cells[12]?.textContent||0,
+            BB:+cells[9]?.textContent||0,
+            H:+cells[8]?.textContent||0,
+            HR:0, QS:0, WAR:null
+          };
+        }
+      }
+    }
+    return null;
+  } catch(e){ return null; }
 }
 
-function renderRadarList(season) {
-  const d = SEASONS[season];
-  const items = [
-    {label:'OPS', v: d.OPS?.toFixed(3)},
-    {label:'wRC+', v: d.wRC},
-    {label:'WAR', v: d.WAR?.toFixed(1)},
-    {label:'BB%', v: d.BBpct?.toFixed(1)+'%'},
-    {label:'K%', v: d.Kpct?.toFixed(1)+'%'},
-    {label:'ISO', v: d.ISO?.toFixed(3)},
+// ─── 하드코딩 2026 fallback 데이터 ───────────────────────
+const FALLBACK_2026 = {
+  '52605': { G:39, PA:169,AB:142,H:40,'2B':8,'3B':0,HR:12,RBI:35,R:29,SB:1, BB:24,SO:25,AVG:.282,OBP:.391,SLG:.592,OPS:.983,WAR:2.4,wRC:158,wOBA:.415,BABIP:.286,ISO:.310,BBp:14.2,Kp:14.8 },
+  '62947': { G:50, PA:196,AB:172,H:45,'2B':8,'3B':0,HR:8, RBI:27,R:25,SB:0, BB:24,SO:60,AVG:.262,OBP:.358,SLG:.459,OPS:.817,WAR:1.2,wRC:118,wOBA:.352,BABIP:.305,ISO:.197,BBp:12.2,Kp:30.6 },
+  '55636': { G:50, PA:198,AB:168,H:55,'2B':10,'3B':1,HR:8, RBI:29,R:32,SB:4, BB:25,SO:38,AVG:.309,OBP:.394,SLG:.518,OPS:.912,WAR:1.8,wRC:145,wOBA:.390,BABIP:.332,ISO:.209,BBp:12.6,Kp:19.2 },
+  '65653': { G:53, PA:210,AB:180,H:57,'2B':9,'3B':1,HR:8, RBI:28,R:30,SB:5, BB:25,SO:45,AVG:.278,OBP:.357,SLG:.461,OPS:.818,WAR:1.5,wRC:120,wOBA:.358,BABIP:.299,ISO:.183,BBp:11.9,Kp:21.4 },
+  '78603': { G:53, PA:206,AB:185,H:51,'2B':7,'3B':0,HR:1, RBI:21,R:27,SB:6, BB:18,SO:28,AVG:.276,OBP:.330,SLG:.330,OPS:.660,WAR:0.9,wRC:85, wOBA:.305,BABIP:.290,ISO:.054,BBp:8.7, Kp:13.6 },
+  '68646': { G:46, PA:151,AB:122,H:38,'2B':11,'3B':0,HR:5, RBI:18,R:15,SB:0, BB:23,SO:20,AVG:.311,OBP:.422,SLG:.525,OPS:.947,WAR:1.5,wRC:148,wOBA:.400,BABIP:.320,ISO:.214,BBp:15.2,Kp:13.2 },
+  '77637': { G:10,IP:'48 1/3',W:3,L:4,ERA:4.84,WHIP:1.45,SO:34,BB:22,H:48,HR:6,SV:0,HLD:0,QS:4,WAR:1.2 },
+  '51648': { G:10,IP:'35 1/3',W:1,L:6,ERA:9.42,WHIP:2.09,SO:39,BB:33,H:41,HR:8,SV:0,HLD:0,QS:0,WAR:-0.8 },
+};
+
+// 2026 데이터 초기 세팅
+Object.keys(FALLBACK_2026).forEach(id => {
+  if(!CAREER_STATS[id]) CAREER_STATS[id] = {};
+  const type = PLAYERS.pitcher.find(p=>p.id===id) ? 'pitcher' : 'hitter';
+  if(!CAREER_STATS[id][type]) CAREER_STATS[id][type] = {};
+  if(!CAREER_STATS[id][type]['2026']) CAREER_STATS[id][type]['2026'] = FALLBACK_2026[id];
+});
+
+// ─── STATE ──────────────────────────────────────────────
+let currentType = 'hitter';
+let currentPlayer = null;
+let currentTab = 'basic';
+let charts = {};
+
+// ─── INIT ───────────────────────────────────────────────
+function buildSelect() {
+  const sel = document.getElementById('playerSelect');
+  sel.innerHTML = `<option value="">-- 선수 선택 --</option>`;
+  PLAYERS[currentType].forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `${p.name} (${p.pos})`;
+    sel.appendChild(opt);
+  });
+}
+
+function setType(type) {
+  currentType = type;
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  currentPlayer = null;
+  buildSelect();
+  clearView();
+}
+
+function onPlayerChange() {
+  const id = document.getElementById('playerSelect').value;
+  currentPlayer = [...PLAYERS.hitter,...PLAYERS.pitcher].find(p=>p.id===id)||null;
+  refreshView();
+}
+
+function clearView() {
+  document.getElementById('heroGrid').innerHTML = '';
+  document.getElementById('detailHead').innerHTML = '';
+  document.getElementById('detailRow').innerHTML = '';
+  document.getElementById('advGrid').innerHTML = '';
+  document.getElementById('careerBody').innerHTML = '';
+  document.getElementById('playerHeader').innerHTML = '<div class="p-avatar">⚾</div><div><div class="p-name">선수를 선택하세요</div><div class="p-meta"><span class="p-tag">🐯 KIA 타이거즈</span></div></div>';
+}
+
+// ─── RENDER ─────────────────────────────────────────────
+function refreshView() {
+  if(!currentPlayer) return clearView();
+  renderPlayerHeader();
+  if(currentTab==='basic') renderBasic();
+  else if(currentTab==='advanced') renderAdvanced();
+  else if(currentTab==='trend') renderTrend();
+  else if(currentTab==='career') renderCareer();
+}
+
+function getStats(year) {
+  const cs = CAREER_STATS[currentPlayer.id];
+  if(!cs) return null;
+  const t = currentType==='hitter'?'hitter':'pitcher';
+  return cs[t]?.[year]||null;
+}
+
+function getAllYears() {
+  const cs = CAREER_STATS[currentPlayer.id];
+  if(!cs) return [];
+  const t = currentType==='hitter'?'hitter':'pitcher';
+  return Object.keys(cs[t]||{}).sort();
+}
+
+function renderPlayerHeader() {
+  const p = currentPlayer;
+  document.getElementById('playerHeader').innerHTML = `
+    <div class="p-avatar">${currentType==='pitcher'?'🔥':'⚾'}</div>
+    <div>
+      <div class="p-name">${p.name} ${p.badge?`<span class="badge-mvp">${p.badge}</span>`:''}</div>
+      <div class="p-meta">
+        <span class="p-tag">🐯 KIA 타이거즈</span>
+        <span class="p-tag">포지션 <b>${p.pos}</b></span>
+        <span class="p-tag">등번호 <b>#${p.num}</b></span>
+        <span class="p-tag">생년 <b>${p.born}</b></span>
+        <span class="p-tag">투타 <b>${p.throws}</b></span>
+      </div>
+    </div>`;
+}
+
+// ─ 기본 스탯 ─
+function renderBasic() {
+  const s = getStats('2026');
+  if(currentType==='hitter') renderHitterBasic(s);
+  else renderPitcherBasic(s);
+}
+
+function renderHitterBasic(s) {
+  const defs = [
+    {k:'AVG', l:'타율',  f:v=>v.toFixed(3), cls:'color:#58D68D'},
+    {k:'HR',  l:'홈런',  f:v=>v,             cls:'color:#E74C3C'},
+    {k:'RBI', l:'타점',  f:v=>v,             cls:'color:#E67E22'},
+    {k:'R',   l:'득점',  f:v=>v,             cls:''},
+    {k:'H',   l:'안타',  f:v=>v,             cls:''},
+    {k:'SB',  l:'도루',  f:v=>v,             cls:'color:#9B59B6'},
+    {k:'OPS', l:'OPS',   f:v=>v.toFixed(3),  cls:'color:#3498DB'},
+    {k:'WAR', l:'WAR',   f:v=>v!==null?v.toFixed(1):'-', cls:'color:#FFD700'},
   ];
-  document.getElementById('radar-list').innerHTML = items.map(i=>`
-    <li>${i.label} <span>${i.v||'-'}</span></li>`).join('');
-}
-
-function renderRadar(season) {
-  const d = SEASONS[season];
-  const data = {
-    labels: ['타율', '장타력', '출루', '선구안', '주루', '컨택'],
-    datasets: [{
-      label: season+'시즌',
-      data: [
-        Math.min(d.AVG/.400*100, 100),
-        Math.min(d.ISO/.400*100, 100),
-        Math.min(d.OBP/.500*100, 100),
-        Math.min(d.BBpct/20*100, 100),
-        Math.min((d.SB||0)/50*100, 100),
-        Math.min((1-d.Kpct/30)*100, 100),
-      ],
-      backgroundColor: 'rgba(200,16,46,0.25)',
-      borderColor: '#C8102E',
-      pointBackgroundColor: '#FFD700',
-      borderWidth: 2,
-    }]
-  };
-  if(radarChart) radarChart.destroy();
-  radarChart = new Chart(document.getElementById('radarChart'), {
-    type: 'radar',
-    data,
-    options: {
-      scales: { r: {
-        min:0, max:100,
-        grid:{ color:'#333' },
-        pointLabels:{ color:'#ccc', font:{size:12} },
-        ticks:{ display:false },
-        angleLines:{ color:'#333' }
-      }},
-      plugins: { legend:{ labels:{ color:'#ccc' } } },
-    }
-  });
-}
-
-function renderTrend() {
-  const years = ['2022','2023','2024','2025','2026'];
-  const labels = years;
-
-  const chartOpts = (yLabel) => ({
-    responsive: true,
-    plugins: { legend:{ labels:{ color:'#ccc', boxWidth:12 } } },
-    scales: {
-      x:{ ticks:{ color:'#999' }, grid:{ color:'#2a2a2a' } },
-      y:{ ticks:{ color:'#999' }, grid:{ color:'#2a2a2a' } }
-    }
-  });
-
-  // AVG/OBP/SLG
-  if(avgChart) avgChart.destroy();
-  avgChart = new Chart(document.getElementById('avgChart'), {
-    type:'line',
-    data:{
-      labels,
-      datasets:[
-        { label:'타율(AVG)', data:years.map(y=>SEASONS[y].AVG), borderColor:'#2ECC71', tension:0.4, pointBackgroundColor:'#2ECC71' },
-        { label:'출루율(OBP)', data:years.map(y=>SEASONS[y].OBP), borderColor:'#3498DB', tension:0.4, pointBackgroundColor:'#3498DB' },
-        { label:'장타율(SLG)', data:years.map(y=>SEASONS[y].SLG), borderColor:'#E74C3C', tension:0.4, pointBackgroundColor:'#E74C3C' },
-      ]
-    },
-    options: chartOpts()
-  });
-
-  // HR/SB/RBI
-  if(hrChart) hrChart.destroy();
-  hrChart = new Chart(document.getElementById('hrChart'), {
-    type:'bar',
-    data:{
-      labels,
-      datasets:[
-        { label:'홈런', data:years.map(y=>SEASONS[y].HR), backgroundColor:'rgba(231,76,60,0.8)' },
-        { label:'도루', data:years.map(y=>SEASONS[y].SB), backgroundColor:'rgba(155,89,182,0.8)' },
-        { label:'타점', data:years.map(y=>SEASONS[y].RBI), backgroundColor:'rgba(230,126,34,0.8)' },
-      ]
-    },
-    options: chartOpts()
-  });
-
-  // OPS
-  if(opsChart) opsChart.destroy();
-  opsChart = new Chart(document.getElementById('opsChart'), {
-    type:'line',
-    data:{
-      labels,
-      datasets:[{
-        label:'OPS', data:years.map(y=>SEASONS[y].OPS),
-        borderColor:'#3498DB', backgroundColor:'rgba(52,152,219,0.1)',
-        fill:true, tension:0.4, pointBackgroundColor:'#FFD700', pointRadius:6,
-      }]
-    },
-    options: chartOpts()
-  });
-
-  // WAR
-  if(warChart) warChart.destroy();
-  warChart = new Chart(document.getElementById('warChart'), {
-    type:'bar',
-    data:{
-      labels,
-      datasets:[{
-        label:'WAR',
-        data:years.map(y=>SEASONS[y].WAR),
-        backgroundColor: years.map(y=>y==='2024'?'#FFD700':'rgba(200,16,46,0.7)'),
-      }]
-    },
-    options: chartOpts()
-  });
-}
-
-function renderCareer() {
-  const years = ['2022','2023','2024','2025','2026'];
-  const tbody = document.getElementById('career-tbody');
-  tbody.innerHTML = years.map(y => {
-    const d = SEASONS[y];
-    const isHL = y === '2024';
-    return `<tr class="${isHL?'season-highlight':''}">
-      <td class="season-col">${y}${isHL?' ★':''}</td>
-      <td>${d.G}</td><td>${d.PA}</td><td>${d.AB}</td>
-      <td class="${isHL?'best':''}">${d.H}</td>
-      <td>${d['2B']}</td><td>${d['3B']}</td>
-      <td class="${isHL?'best':''}">${d.HR}</td>
-      <td>${d.RBI}</td>
-      <td class="${isHL?'best':''}">${d.R}</td>
-      <td>${d.SB}</td><td>${d.BB}</td><td>${d.SO}</td>
-      <td class="${isHL?'best':''}">${d.AVG.toFixed(3)}</td>
-      <td>${d.OBP.toFixed(3)}</td>
-      <td>${d.SLG.toFixed(3)}</td>
-      <td class="${isHL?'best':''}">${d.OPS.toFixed(3)}</td>
-      <td class="${isHL?'best':''}">${d.WAR.toFixed(1)}</td>
-    </tr>`;
+  if(!s){ document.getElementById('heroGrid').innerHTML='<div style="color:var(--muted);padding:20px">2026 시즌 데이터 없음</div>'; return; }
+  document.getElementById('heroGrid').innerHTML = defs.map(d=>{
+    const v=s[d.k]; const disp=v!==null&&v!==undefined?d.f(v):'-';
+    return `<div class="s-card"><div class="lbl">${d.l}</div><div class="val" style="${d.cls}">${disp}</div></div>`;
   }).join('');
-
-  // Career total row
-  const c = SEASONS['career'];
-  tbody.innerHTML += `<tr style="background:rgba(255,215,0,0.06);border-top:2px solid #FFD700">
-    <td class="season-col" style="color:#FFD700">통산</td>
-    <td>${c.G}</td><td>${c.PA}</td><td>${c.AB}</td>
-    <td>${c.H}</td><td>${c['2B']}</td><td>${c['3B']}</td>
-    <td>${c.HR}</td><td>${c.RBI}</td><td>${c.R}</td>
-    <td>${c.SB}</td><td>${c.BB}</td><td>${c.SO}</td>
-    <td>${c.AVG.toFixed(3)}</td><td>${c.OBP.toFixed(3)}</td>
-    <td>${c.SLG.toFixed(3)}</td><td>${c.OPS.toFixed(3)}</td>
-    <td>${c.WAR.toFixed(1)}</td>
-  </tr>`;
+  // detail table
+  const cols=['G','PA','AB','H','2B','3B','HR','RBI','R','SB','BB','SO','AVG','OBP','SLG','OPS'];
+  const lbls=['경기','타석','타수','안타','2루타','3루타','홈런','타점','득점','도루','볼넷','삼진','타율','출루율','장타율','OPS'];
+  document.getElementById('detailHead').innerHTML=cols.map((c,i)=>`<th>${lbls[i]}<br><small>${c}</small></th>`).join('');
+  document.getElementById('detailRow').innerHTML=cols.map(c=>{
+    const v=s[c]; if(v===undefined||v===null)return`<td>-</td>`;
+    return`<td>${['AVG','OBP','SLG','OPS'].includes(c)?v.toFixed(3):v}</td>`;
+  }).join('');
 }
 
-function setSeason(season) {
-  currentSeason = season;
-  document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  refreshTab();
+function renderPitcherBasic(s) {
+  const defs=[
+    {k:'ERA', l:'방어율', f:v=>v.toFixed(2),cls:'color:#E74C3C'},
+    {k:'W',   l:'승',     f:v=>v,           cls:'color:#2ECC71'},
+    {k:'L',   l:'패',     f:v=>v,           cls:'color:var(--muted)'},
+    {k:'IP',  l:'이닝',   f:v=>v,           cls:''},
+    {k:'SO',  l:'탈삼진', f:v=>v,           cls:'color:#3498DB'},
+    {k:'WHIP',l:'WHIP',   f:v=>v.toFixed(2),cls:'color:#E67E22'},
+    {k:'BB',  l:'볼넷',   f:v=>v,           cls:''},
+    {k:'WAR', l:'WAR',    f:v=>v!==null?v.toFixed(1):'-',cls:'color:#FFD700'},
+  ];
+  if(!s){ document.getElementById('heroGrid').innerHTML='<div style="color:var(--muted);padding:20px">2026 시즌 데이터 없음</div>'; return; }
+  document.getElementById('heroGrid').innerHTML = defs.map(d=>{
+    const v=s[d.k]; const disp=v!==null&&v!==undefined?d.f(v):'-';
+    return `<div class="s-card"><div class="lbl">${d.l}</div><div class="val" style="${d.cls}">${disp}</div></div>`;
+  }).join('');
+  const cols=['G','W','L','SV','HLD','IP','ERA','WHIP','SO','BB','H'];
+  const lbls=['등판','승','패','세이브','홀드','이닝','방어율','WHIP','탈삼진','볼넷','피안타'];
+  document.getElementById('detailHead').innerHTML=cols.map((c,i)=>`<th>${lbls[i]}<br><small>${c}</small></th>`).join('');
+  document.getElementById('detailRow').innerHTML=cols.map(c=>{
+    const v=s[c]; if(v===undefined||v===null)return`<td>-</td>`;
+    return`<td>${['ERA','WHIP'].includes(c)?v.toFixed(2):v}</td>`;
+  }).join('');
 }
 
-function setTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-'+tab).classList.add('active');
-  refreshTab();
+// ─ 고급 스탯 ─
+function renderAdvanced() {
+  const s = getStats('2026');
+  if(currentType==='pitcher'){ renderPitcherAdvanced(s); return; }
+  const ADV=[
+    {k:'OPS', l:'OPS', n:'출루율+장타율', desc:'리그평균 0.730', max:1.3, clr:'#3498DB', pct:v=>v/1.3},
+    {k:'wRC', l:'wRC+',n:'가중득점생산력', desc:'100=리그평균',   max:200, clr:'#E74C3C', pct:v=>v/200},
+    {k:'wOBA',l:'wOBA',n:'가중출루율',     desc:'리그평균 ~.330', max:.500,clr:'#9B59B6', pct:v=>v/.500},
+    {k:'WAR', l:'WAR', n:'대체선수대비승리기여',desc:'5+는 ALL스타급',max:10,clr:'#FFD700',pct:v=>(v||0)/10},
+    {k:'BABIP',l:'BABIP',n:'인플레이타율', desc:'평균 ~.290',     max:.420,clr:'#2ECC71', pct:v=>v/.420},
+    {k:'ISO', l:'ISO', n:'순수장타율',     desc:'SLG - AVG',     max:.400,clr:'#E67E22', pct:v=>v/.400},
+    {k:'BBp', l:'BB%', n:'볼넷비율',       desc:'높을수록 좋음',  max:20,  clr:'#1ABC9C', pct:v=>v/20},
+    {k:'Kp',  l:'K%',  n:'삼진비율',       desc:'낮을수록 좋음',  max:30,  clr:'#95A5A6', pct:v=>v/30},
+  ];
+  if(!s){ document.getElementById('advGrid').innerHTML='<div style="color:var(--muted);padding:20px">데이터 없음</div>'; return; }
+  document.getElementById('advGrid').innerHTML = ADV.map(d=>{
+    const v=s[d.k]; if(v===null||v===undefined) return `<div class="adv-card"><div class="a-lbl">${d.l}</div><div class="a-name">${d.n}</div><div class="a-val" style="color:${d.clr}">-</div></div>`;
+    const pct=Math.min(d.pct(v)*100,100);
+    const disp=['OPS','wOBA','BABIP','ISO'].includes(d.k)?v.toFixed(3):['BBp','Kp'].includes(d.k)?v.toFixed(1)+'%':['WAR'].includes(d.k)?v.toFixed(1):v;
+    return `<div class="adv-card"><div class="a-lbl">${d.l}</div><div class="a-name">${d.n}</div>
+      <div class="a-val" style="color:${d.clr}">${disp}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${d.clr}"></div></div>
+      <div class="bar-lbl"><span>${d.desc}</span><span>${pct.toFixed(0)}%</span></div></div>`;
+  }).join('');
+  renderRadar(s);
 }
 
-function refreshTab() {
-  if(currentTab === 'basic') {
-    renderHeroBasic(currentSeason);
-    renderBasicDetail(currentSeason);
-  } else if(currentTab === 'advanced') {
-    renderAdvanced(currentSeason);
-  } else if(currentTab === 'trend') {
-    renderTrend();
-  } else if(currentTab === 'career') {
-    renderCareer();
+function renderPitcherAdvanced(s) {
+  if(!s){ document.getElementById('advGrid').innerHTML='<div style="color:var(--muted);padding:20px">데이터 없음</div>'; return; }
+  const ADV=[
+    {k:'ERA', l:'ERA', n:'평균자책점',   desc:'낮을수록 좋음',  max:6,   clr:'#E74C3C', pct:v=>Math.max(0,1-v/6)},
+    {k:'WHIP',l:'WHIP',n:'이닝당출루허용',desc:'낮을수록 좋음', max:2.5, clr:'#E67E22', pct:v=>Math.max(0,1-v/2.5)},
+    {k:'SO',  l:'K',   n:'탈삼진',       desc:'높을수록 좋음',  max:200, clr:'#3498DB', pct:v=>v/200},
+    {k:'BB',  l:'BB',  n:'볼넷허용',     desc:'낮을수록 좋음',  max:80,  clr:'#9B59B6', pct:v=>Math.max(0,1-v/80)},
+    {k:'W',   l:'승',  n:'승리',         desc:'',              max:20,  clr:'#2ECC71', pct:v=>v/20},
+    {k:'WAR', l:'WAR', n:'대체선수대비승리',desc:'높을수록 좋음',max:8,  clr:'#FFD700', pct:v=>(v||0)/8},
+  ];
+  document.getElementById('advGrid').innerHTML = ADV.map(d=>{
+    const v=s[d.k]; if(v===null||v===undefined) return `<div class="adv-card"><div class="a-lbl">${d.l}</div><div class="a-name">${d.n}</div><div class="a-val" style="color:${d.clr}">-</div></div>`;
+    const pct=Math.min(d.pct(v)*100,100);
+    const disp=['ERA','WHIP'].includes(d.k)?v.toFixed(2):['WAR'].includes(d.k)&&v!==null?v.toFixed(1):v;
+    return `<div class="adv-card"><div class="a-lbl">${d.l}</div><div class="a-name">${d.n}</div>
+      <div class="a-val" style="color:${d.clr}">${disp}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${d.clr}"></div></div>
+      <div class="bar-lbl"><span>${d.desc}</span><span>${pct.toFixed(0)}%</span></div></div>`;
+  }).join('');
+  // pitcher radar
+  renderPitcherRadar(s);
+}
+
+let radarChart=null;
+function renderRadar(s) {
+  const data={labels:['타율','장타력','출루','선구안','주루','컨택'],datasets:[{
+    label:'2026 시즌',
+    data:[
+      Math.min((s.AVG||0)/.400*100,100),
+      Math.min((s.ISO||0)/.400*100,100),
+      Math.min((s.OBP||0)/.500*100,100),
+      Math.min((s.BBp||0)/20*100,100),
+      Math.min((s.SB||0)/50*100,100),
+      Math.min((1-(s.Kp||0)/30)*100,100),
+    ],
+    backgroundColor:'rgba(200,16,46,0.25)',borderColor:'#C8102E',pointBackgroundColor:'#FFD700',borderWidth:2
+  }]};
+  if(radarChart) radarChart.destroy();
+  radarChart=new Chart(document.getElementById('radarChart'),{type:'radar',data,options:{
+    scales:{r:{min:0,max:100,grid:{color:'#333'},pointLabels:{color:'#ccc',font:{size:12}},ticks:{display:false},angleLines:{color:'#333'}}},
+    plugins:{legend:{labels:{color:'#ccc'}}}
+  }});
+  document.getElementById('radarTitle').textContent=`${currentPlayer.name} 2026 능력치`;
+  document.getElementById('radarList').innerHTML=[
+    {l:'OPS',v:s.OPS?.toFixed(3)},{l:'wRC+',v:s.wRC},{l:'WAR',v:s.WAR?.toFixed(1)},
+    {l:'BB%',v:s.BBp?.toFixed(1)+'%'},{l:'K%',v:s.Kp?.toFixed(1)+'%'},{l:'ISO',v:s.ISO?.toFixed(3)}
+  ].map(i=>`<li>${i.l} <span>${i.v||'-'}</span></li>`).join('');
+}
+
+function renderPitcherRadar(s) {
+  const data={labels:['방어율','WHIP','탈삼진','볼넷 절제','퀄리티스타트','WAR'],datasets:[{
+    label:'2026 시즌',
+    data:[
+      Math.max(0,(1-(s.ERA||9)/6)*100),
+      Math.max(0,(1-(s.WHIP||3)/2.5)*100),
+      Math.min((s.SO||0)/200*100,100),
+      Math.max(0,(1-(s.BB||80)/80)*100),
+      Math.min((s.QS||0)/20*100,100),
+      Math.min(((s.WAR||0)+2)/8*100,100),
+    ],
+    backgroundColor:'rgba(200,16,46,0.25)',borderColor:'#C8102E',pointBackgroundColor:'#FFD700',borderWidth:2
+  }]};
+  if(radarChart) radarChart.destroy();
+  radarChart=new Chart(document.getElementById('radarChart'),{type:'radar',data,options:{
+    scales:{r:{min:0,max:100,grid:{color:'#333'},pointLabels:{color:'#ccc',font:{size:12}},ticks:{display:false},angleLines:{color:'#333'}}},
+    plugins:{legend:{labels:{color:'#ccc'}}}
+  }});
+  document.getElementById('radarTitle').textContent=`${currentPlayer.name} 2026 능력치`;
+  document.getElementById('radarList').innerHTML=[
+    {l:'ERA',v:s.ERA?.toFixed(2)},{l:'WHIP',v:s.WHIP?.toFixed(2)},{l:'K',v:s.SO},
+    {l:'BB',v:s.BB},{l:'IP',v:s.IP},{l:'W-L',v:`${s.W}-${s.L}`}
+  ].map(i=>`<li>${i.l} <span>${i.v||'-'}</span></li>`).join('');
+}
+
+// ─ 추이 ─
+let avgChart=null,hrChart=null,opsChart=null,warChart=null;
+function renderTrend() {
+  const yrs = getAllYears();
+  const chartOpts = ()=>({responsive:true,plugins:{legend:{labels:{color:'#ccc',boxWidth:12}}},scales:{x:{ticks:{color:'#999'},grid:{color:'#2a2a2a'}},y:{ticks:{color:'#999'},grid:{color:'#2a2a2a'}}}});
+
+  if(currentType==='hitter') {
+    if(avgChart) avgChart.destroy();
+    avgChart=new Chart(document.getElementById('avgChart'),{type:'line',data:{labels:yrs,datasets:[
+      {label:'AVG',data:yrs.map(y=>getStats(y)?.AVG||null),borderColor:'#2ECC71',tension:.4,pointBackgroundColor:'#2ECC71'},
+      {label:'OBP',data:yrs.map(y=>getStats(y)?.OBP||null),borderColor:'#3498DB',tension:.4,pointBackgroundColor:'#3498DB'},
+      {label:'SLG',data:yrs.map(y=>getStats(y)?.SLG||null),borderColor:'#E74C3C',tension:.4,pointBackgroundColor:'#E74C3C'},
+    ]},options:chartOpts()});
+    if(hrChart) hrChart.destroy();
+    hrChart=new Chart(document.getElementById('hrChart'),{type:'bar',data:{labels:yrs,datasets:[
+      {label:'홈런',data:yrs.map(y=>getStats(y)?.HR||0),backgroundColor:'rgba(231,76,60,.8)'},
+      {label:'도루',data:yrs.map(y=>getStats(y)?.SB||0),backgroundColor:'rgba(155,89,182,.8)'},
+      {label:'타점',data:yrs.map(y=>getStats(y)?.RBI||0),backgroundColor:'rgba(230,126,34,.8)'},
+    ]},options:chartOpts()});
+    if(opsChart) opsChart.destroy();
+    opsChart=new Chart(document.getElementById('opsChart'),{type:'line',data:{labels:yrs,datasets:[{label:'OPS',data:yrs.map(y=>getStats(y)?.OPS||null),borderColor:'#3498DB',backgroundColor:'rgba(52,152,219,.1)',fill:true,tension:.4,pointBackgroundColor:'#FFD700',pointRadius:6}]},options:chartOpts()});
+  } else {
+    if(avgChart) avgChart.destroy();
+    avgChart=new Chart(document.getElementById('avgChart'),{type:'line',data:{labels:yrs,datasets:[
+      {label:'ERA',data:yrs.map(y=>getStats(y)?.ERA||null),borderColor:'#E74C3C',tension:.4},
+      {label:'WHIP',data:yrs.map(y=>getStats(y)?.WHIP||null),borderColor:'#E67E22',tension:.4},
+    ]},options:chartOpts()});
+    if(hrChart) hrChart.destroy();
+    hrChart=new Chart(document.getElementById('hrChart'),{type:'bar',data:{labels:yrs,datasets:[
+      {label:'승',data:yrs.map(y=>getStats(y)?.W||0),backgroundColor:'rgba(46,204,113,.8)'},
+      {label:'패',data:yrs.map(y=>getStats(y)?.L||0),backgroundColor:'rgba(231,76,60,.8)'},
+      {label:'탈삼진',data:yrs.map(y=>getStats(y)?.SO||0),backgroundColor:'rgba(52,152,219,.6)'},
+    ]},options:chartOpts()});
+    if(opsChart) opsChart.destroy();
+    opsChart=new Chart(document.getElementById('opsChart'),{type:'line',data:{labels:yrs,datasets:[{label:'이닝',data:yrs.map(y=>{const s=getStats(y);if(!s)return null;return parseFloat(s.IP)||0;}),borderColor:'#9B59B6',backgroundColor:'rgba(155,89,182,.1)',fill:true,tension:.4,pointBackgroundColor:'#FFD700',pointRadius:6}]},options:chartOpts()});
+  }
+  if(warChart) warChart.destroy();
+  warChart=new Chart(document.getElementById('warChart'),{type:'bar',data:{labels:yrs,datasets:[{label:'WAR',data:yrs.map(y=>getStats(y)?.WAR||0),backgroundColor:yrs.map(y=>y==='2024'?'#FFD700':'rgba(200,16,46,.7)')}]},options:chartOpts()});
+}
+
+// ─ 통산 ─
+function renderCareer() {
+  const yrs = getAllYears();
+  if(currentType==='hitter') {
+    document.getElementById('careerHead').innerHTML='<th>연도</th><th>G</th><th>PA</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>R</th><th>SB</th><th>BB</th><th>SO</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th><th>WAR</th>';
+    document.getElementById('careerBody').innerHTML=yrs.map(y=>{
+      const s=getStats(y); if(!s)return`<tr><td class="yr-col">${y}</td><td colspan="17" style="color:var(--muted)">부상/데이터없음</td></tr>`;
+      const best=y==='2024';
+      return`<tr class="${best?'hl-row':''}"><td class="yr-col">${y}${best?' ★':''}</td>
+        <td>${s.G}</td><td>${s.PA}</td><td>${s.AB}</td>
+        <td class="${best?'best':''}">${s.H}</td><td>${s['2B']}</td><td>${s['3B']}</td>
+        <td class="${best?'best':''}">${s.HR}</td><td>${s.RBI}</td>
+        <td class="${best?'best':''}">${s.R}</td><td>${s.SB}</td><td>${s.BB}</td><td>${s.SO}</td>
+        <td class="${best?'best':''}">${s.AVG.toFixed(3)}</td>
+        <td>${s.OBP.toFixed(3)}</td><td>${s.SLG.toFixed(3)}</td>
+        <td class="${best?'best':''}">${s.OPS.toFixed(3)}</td>
+        <td class="${best?'best':''}">${s.WAR!==null?s.WAR.toFixed(1):'-'}</td></tr>`;
+    }).join('');
+  } else {
+    document.getElementById('careerHead').innerHTML='<th>연도</th><th>G</th><th>W</th><th>L</th><th>SV</th><th>HLD</th><th>IP</th><th>ERA</th><th>WHIP</th><th>SO</th><th>BB</th><th>H</th><th>WAR</th>';
+    document.getElementById('careerBody').innerHTML=yrs.map(y=>{
+      const s=getStats(y); if(!s)return`<tr><td class="yr-col">${y}</td><td colspan="12" style="color:var(--muted)">데이터없음</td></tr>`;
+      return`<tr><td class="yr-col">${y}</td>
+        <td>${s.G}</td><td>${s.W}</td><td>${s.L}</td><td>${s.SV}</td><td>${s.HLD}</td>
+        <td>${s.IP}</td><td>${s.ERA.toFixed(2)}</td><td>${s.WHIP.toFixed(2)}</td>
+        <td>${s.SO}</td><td>${s.BB}</td><td>${s.H}</td>
+        <td>${s.WAR!==null?s.WAR.toFixed(1):'-'}</td></tr>`;
+    }).join('');
   }
 }
 
-// Init
-renderHeroBasic('2024');
-renderBasicDetail('2024');
+// ─── TAB & NAV ───────────────────────────────────────────
+function setTab(tab) {
+  currentTab=tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(currentPlayer) refreshView();
+}
+
+// ─── BOOT ────────────────────────────────────────────────
+buildSelect();
+
+// 김도영 기본 선택
+const sel = document.getElementById('playerSelect');
+sel.value = '52605';
+currentPlayer = PLAYERS.hitter.find(p=>p.id==='52605');
+refreshView();
+document.getElementById('statusText').textContent = '김도영 기본 데이터 표시 중 (🔄로 최신화)';
 </script>
 </body>
 </html>
