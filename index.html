@@ -292,6 +292,56 @@ const KBO_ROSTER = code => `https://www.koreabaseball.com/Team/Player/${{HT:'Kia
 const KBO_HITTER = id => `https://www.koreabaseball.com/Record/Player/HitterDetail/Basic.aspx?playerId=${id}`;
 const KBO_PITCHER = id => `https://www.koreabaseball.com/Record/Player/PitcherDetail/Basic.aspx?playerId=${id}`;
 
+// ─── 오프라인 예시 데이터 (실시간 연동 실패 시 즉시 표시용 폴백) ─
+// 실시간 조회가 성공하면 아래 데이터는 즉시 최신 데이터로 교체됩니다.
+const FALLBACK_YEAR = '2024';
+const FALLBACK_DATA = {
+  HT:{hitters:[
+    {name:'김도영',pos:'내야수',raw:{G:142,PA:618,AB:546,H:189,'2B':33,'3B':10,HR:38,RBI:109,R:143,SB:40,BB:60,SO:104,AVG:.347,OBP:.420,SLG:.647}},
+    {name:'나성범',pos:'외야수',raw:{G:111,PA:460,AB:407,H:123,'2B':24,'3B':1,HR:19,RBI:78,R:65,SB:6,BB:42,SO:88,AVG:.302,OBP:.371,SLG:.499}},
+  ],pitchers:[{name:'제임스 네일',pos:'투수',raw:{G:30,W:15,L:4,SV:0,HLD:0,IP:'177.2',ERA:2.53,WHIP:0.95,SO:163,BB:30,H:140}}]},
+  OB:{hitters:[
+    {name:'양의지',pos:'포수',raw:{G:127,PA:520,AB:445,H:140,'2B':28,'3B':0,HR:16,RBI:85,R:62,SB:1,BB:60,SO:60,AVG:.340,OBP:.412,SLG:.529}},
+    {name:'정수빈',pos:'외야수',raw:{G:130,PA:540,AB:480,H:140,'2B':20,'3B':3,HR:5,RBI:50,R:80,SB:25,BB:45,SO:70,AVG:.292,OBP:.358,SLG:.388}},
+  ],pitchers:[{name:'곽빈',pos:'투수',raw:{G:28,W:9,L:8,SV:0,HLD:0,IP:'177.0',ERA:3.34,WHIP:1.21,SO:153,BB:62,H:160}}]},
+  SS:{hitters:[
+    {name:'구자욱',pos:'외야수',raw:{G:123,PA:540,AB:460,H:151,'2B':35,'3B':1,HR:28,RBI:91,R:91,SB:6,BB:65,SO:80,AVG:.329,OBP:.428,SLG:.572}},
+    {name:'디아즈',pos:'내야수',raw:{G:140,PA:600,AB:530,H:160,'2B':25,'3B':1,HR:24,RBI:99,R:78,SB:3,BB:55,SO:95,AVG:.302,OBP:.372,SLG:.500}},
+  ],pitchers:[{name:'원태인',pos:'투수',raw:{G:26,W:11,L:8,SV:0,HLD:0,IP:'162.0',ERA:3.66,WHIP:1.24,SO:122,BB:38,H:165}}]},
+  LG:{hitters:[
+    {name:'오스틴',pos:'내야수',raw:{G:138,PA:580,AB:510,H:150,'2B':28,'3B':1,HR:31,RBI:107,R:85,SB:1,BB:55,SO:120,AVG:.294,OBP:.366,SLG:.529}},
+    {name:'문보경',pos:'내야수',raw:{G:140,PA:590,AB:520,H:155,'2B':27,'3B':2,HR:16,RBI:87,R:75,SB:4,BB:50,SO:75,AVG:.298,OBP:.365,SLG:.456}},
+  ],pitchers:[{name:'임찬규',pos:'투수',raw:{G:30,W:14,L:6,SV:0,HLD:0,IP:'171.0',ERA:3.42,WHIP:1.27,SO:124,BB:45,H:175}}]},
+  HH:{hitters:[
+    {name:'노시환',pos:'내야수',raw:{G:135,PA:570,AB:495,H:142,'2B':22,'3B':1,HR:31,RBI:101,R:85,SB:7,BB:60,SO:110,AVG:.288,OBP:.373,SLG:.511}},
+    {name:'채은성',pos:'외야수',raw:{G:130,PA:540,AB:480,H:140,'2B':25,'3B':1,HR:18,RBI:90,R:65,SB:2,BB:45,SO:70,AVG:.292,OBP:.355,SLG:.460}},
+  ],pitchers:[{name:'문동주',pos:'투수',raw:{G:24,W:8,L:8,SV:0,HLD:0,IP:'141.1',ERA:3.95,WHIP:1.30,SO:118,BB:50,H:140}}]},
+  LT:{hitters:[
+    {name:'윤동희',pos:'외야수',raw:{G:130,PA:520,AB:470,H:140,'2B':22,'3B':3,HR:13,RBI:65,R:78,SB:13,BB:35,SO:75,AVG:.298,OBP:.350,SLG:.440}},
+    {name:'전준우',pos:'외야수',raw:{G:135,PA:560,AB:500,H:155,'2B':28,'3B':1,HR:13,RBI:80,R:70,SB:2,BB:45,SO:60,AVG:.310,OBP:.370,SLG:.460}},
+  ],pitchers:[{name:'박세웅',pos:'투수',raw:{G:28,W:9,L:11,SV:0,HLD:0,IP:'168.1',ERA:3.45,WHIP:1.20,SO:140,BB:40,H:160}}]},
+  KT:{hitters:[
+    {name:'강백호',pos:'내야수',raw:{G:120,PA:500,AB:440,H:139,'2B':28,'3B':1,HR:13,RBI:76,R:65,SB:3,BB:50,SO:55,AVG:.315,OBP:.391,SLG:.473}},
+    {name:'황재균',pos:'내야수',raw:{G:125,PA:520,AB:470,H:135,'2B':22,'3B':1,HR:12,RBI:70,R:68,SB:8,BB:38,SO:60,AVG:.287,OBP:.345,SLG:.420}},
+  ],pitchers:[{name:'고영표',pos:'투수',raw:{G:27,W:10,L:9,SV:0,HLD:0,IP:'160.0',ERA:3.42,WHIP:1.15,SO:115,BB:30,H:155}}]},
+  SK:{hitters:[
+    {name:'최정',pos:'내야수',raw:{G:140,PA:590,AB:510,H:135,'2B':22,'3B':1,HR:25,RBI:87,R:78,SB:5,BB:70,SO:95,AVG:.265,OBP:.370,SLG:.470}},
+    {name:'한유섬',pos:'외야수',raw:{G:125,PA:500,AB:440,H:118,'2B':20,'3B':1,HR:20,RBI:75,R:60,SB:1,BB:50,SO:90,AVG:.268,OBP:.350,SLG:.470}},
+  ],pitchers:[{name:'김광현',pos:'투수',raw:{G:27,W:8,L:9,SV:0,HLD:0,IP:'160.0',ERA:3.53,WHIP:1.30,SO:135,BB:45,H:165}}]},
+  NC:{hitters:[
+    {name:'손아섭',pos:'외야수',raw:{G:140,PA:600,AB:530,H:180,'2B':25,'3B':2,HR:8,RBI:75,R:85,SB:10,BB:55,SO:50,AVG:.339,OBP:.404,SLG:.453}},
+    {name:'박민우',pos:'내야수',raw:{G:125,PA:520,AB:460,H:140,'2B':18,'3B':3,HR:5,RBI:50,R:75,SB:20,BB:50,SO:55,AVG:.304,OBP:.380,SLG:.400}},
+  ],pitchers:[{name:'신민혁',pos:'투수',raw:{G:26,W:10,L:7,SV:0,HLD:0,IP:'155.0',ERA:3.39,WHIP:1.18,SO:120,BB:35,H:150}}]},
+  WO:{hitters:[
+    {name:'김혜성',pos:'내야수',raw:{G:140,PA:610,AB:540,H:181,'2B':22,'3B':6,HR:8,RBI:60,R:104,SB:46,BB:55,SO:70,AVG:.335,OBP:.396,SLG:.456}},
+    {name:'이주형',pos:'외야수',raw:{G:120,PA:480,AB:430,H:120,'2B':22,'3B':2,HR:10,RBI:55,R:60,SB:8,BB:40,SO:75,AVG:.279,OBP:.345,SLG:.430}},
+  ],pitchers:[{name:'하영민',pos:'투수',raw:{G:26,W:7,L:9,SV:0,HLD:0,IP:'150.0',ERA:3.45,WHIP:1.25,SO:110,BB:42,H:145}}]},
+};
+function deriveHitterRaw(raw) {
+  const ops = +(raw.OBP + raw.SLG).toFixed(3);
+  return { ...raw, OPS: ops, WAR:null, wRC:null, wOBA:null, BABIP:null, ISO:+(raw.SLG-raw.AVG).toFixed(3), BBp:null, Kp:null };
+}
+
 // ─── STATE ──────────────────────────────────────────────
 let currentTeam = null;
 let currentType = 'hitter';
@@ -325,21 +375,60 @@ async function selectTeam(code) {
   currentTeam = team;
   applyTeamTheme(team);
   currentPlayer = null;
-  clearView();
-  await loadRoster(team);
+
+  // 1) 예시 데이터로 즉시 표시 (선수 선택 없이 바로 성적순 리더 노출)
+  loadFallback(team);
   buildSelect();
-  setStatus('loading','선수단을 불러왔습니다. 선수를 선택하세요');
+  autoSelectTop();
+  setStatus('loading','예시 데이터 표시 중 · 실시간 데이터 연동 시도 중...');
+
+  // 2) 실시간 조회는 백그라운드로 시도, 성공하면 자동 교체
+  loadRoster(team);
+}
+
+function loadFallback(team) {
+  ROSTER = { hitter:[], pitcher:[] };
+  const fb = FALLBACK_DATA[team.code];
+  if(!fb) return;
+  fb.hitters.forEach((p,i)=>{
+    const id = 'fb-h-'+team.code+'-'+i;
+    ROSTER.hitter.push({ id, name:p.name, pos:p.pos, fallback:true });
+    CAREER_CACHE[id] = { hitter: { [FALLBACK_YEAR]: deriveHitterRaw(p.raw) } };
+  });
+  fb.pitchers.forEach((p,i)=>{
+    const id = 'fb-p-'+team.code+'-'+i;
+    ROSTER.pitcher.push({ id, name:p.name, pos:p.pos, fallback:true });
+    CAREER_CACHE[id] = { pitcher: { [FALLBACK_YEAR]: { ...p.raw, HR:0, QS:0, WAR:null } } };
+  });
+}
+
+function statForSort(id, type) {
+  const cs = CAREER_CACHE[id];
+  if(!cs) return -Infinity;
+  const yrs = Object.keys(cs[type]||{}).sort();
+  if(!yrs.length) return -Infinity;
+  const s = cs[type][yrs[yrs.length-1]];
+  if(type==='hitter') return s.OPS ?? -Infinity;
+  return s.ERA!=null ? -s.ERA : -Infinity; // 낮을수록 좋은 ERA는 역순 정렬
+}
+
+function autoSelectTop() {
+  const list = (ROSTER[currentType]||[]).slice().sort((a,b)=>statForSort(b.id,currentType)-statForSort(a.id,currentType));
+  if(!list.length) { currentPlayer = null; clearView(); return; }
+  currentPlayer = list[0];
+  document.getElementById('playerSelect').value = currentPlayer.id;
+  refreshView();
 }
 
 async function loadRoster(team) {
-  setStatus('loading','선수단 조회 중...');
-  ROSTER = { hitter:[], pitcher:[] };
   try {
     const html = await fetchViaProxy(KBO_ROSTER(team.code));
+    if(currentTeam !== team) return; // 그 사이 다른 팀으로 전환된 경우 무시
     const dp = new DOMParser();
     const doc = dp.parseFromString(html, 'text/html');
     const rows = doc.querySelectorAll('table tr');
     const seen = new Set();
+    const live = { hitter:[], pitcher:[] };
     rows.forEach(row=>{
       const link = row.querySelector('a[href*="playerId="]');
       if(!link) return;
@@ -352,14 +441,16 @@ async function loadRoster(team) {
       const name = link.textContent.trim();
       const posText = Array.from(cells).map(c=>c.textContent.trim()).join(' ');
       const isPitcher = /투수|P\b/.test(posText);
-      const entry = { id, name, pos: isPitcher?'투수':'야수', num:'-', born:'-', throws:'-' };
-      (isPitcher ? ROSTER.pitcher : ROSTER.hitter).push(entry);
+      const entry = { id, name, pos: isPitcher?'투수':'야수' };
+      (isPitcher ? live.pitcher : live.hitter).push(entry);
     });
-    if(ROSTER.hitter.length===0 && ROSTER.pitcher.length===0){
-      setStatus('err','선수단 페이지 구조를 인식하지 못했습니다 — KBO 사이트 변경 가능성 (구단 재선택으로 재시도)');
-    }
+    if(live.hitter.length===0 && live.pitcher.length===0) throw new Error('empty roster');
+    ROSTER = live;
+    buildSelect();
+    autoSelectTop();
+    setStatus('ok','실시간 선수단 연동 완료 · 선수를 선택해 기록을 조회하세요');
   } catch(e) {
-    setStatus('err','선수단 조회 실패 (프록시 응답 없음) — 구단을 다시 선택해보세요');
+    if(currentTeam === team) setStatus('err','실시간 연동 실패 — 예시 데이터로 표시 중 (구단 재선택 시 재시도)');
   }
 }
 
@@ -372,12 +463,13 @@ function setStatus(state, text) {
 
 function buildSelect() {
   const sel = document.getElementById('playerSelect');
-  const list = ROSTER[currentType] || [];
-  sel.innerHTML = `<option value="">-- 선수 선택 (${list.length}명) --</option>`;
-  list.forEach(p => {
+  const list = (ROSTER[currentType] || []).slice().sort((a,b)=>statForSort(b.id,currentType)-statForSort(a.id,currentType));
+  const tag = list.length && list[0].fallback ? ' · 예시' : '';
+  sel.innerHTML = `<option value="">-- 성적순 선수 목록 (${list.length}명${tag}) --</option>`;
+  list.forEach((p,i) => {
     const opt = document.createElement('option');
     opt.value = p.id;
-    opt.textContent = `${p.name} (${p.pos})`;
+    opt.textContent = `${i+1}. ${p.name} (${p.pos})`;
     sel.appendChild(opt);
   });
 }
@@ -386,15 +478,17 @@ function setType(type) {
   currentType = type;
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
   event.target.classList.add('active');
-  currentPlayer = null;
   buildSelect();
-  clearView();
+  autoSelectTop();
 }
 
 function onPlayerChange() {
   const id = document.getElementById('playerSelect').value;
   currentPlayer = (ROSTER[currentType]||[]).find(p=>p.id===id) || null;
-  if(currentPlayer) fetchLiveData();
+  if(currentPlayer) {
+    if(currentPlayer.fallback) refreshView();
+    else fetchLiveData();
+  }
 }
 
 function clearView() {
@@ -411,6 +505,7 @@ function clearView() {
 async function fetchLiveData() {
   const p = currentPlayer;
   if(!p) return;
+  if(p.fallback) { refreshView(); return; }
   const btn = document.getElementById('fetchBtn');
   btn.disabled = true;
   setStatus('loading','기록 불러오는 중...');
