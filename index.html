@@ -22,6 +22,18 @@
     .header-info h1{font-size:1.55rem;font-weight:900;letter-spacing:-0.5px;}
     .header-info p{font-size:0.8rem;color:var(--muted);margin-top:3px;}
 
+    /* MODE BAR */
+    .mode-bar{background:var(--black);border-bottom:1px solid var(--border);padding:8px 24px;}
+    .mode-bar-inner{max-width:1240px;margin:0 auto;display:flex;gap:8px;}
+    .mode-btn{padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;}
+    .mode-btn.active{background:var(--card);color:var(--text);border-color:var(--team);}
+
+    /* STANDINGS */
+    .standings-toolbar{max-width:1240px;margin:16px auto 0;padding:0 24px;display:flex;align-items:center;gap:10px;}
+    #standingsTable .rk-1{color:var(--gold);font-weight:900;}
+    #standingsTable td:nth-child(2){text-align:left;font-weight:700;}
+    #standingsTable tr.my-team{background:rgba(255,255,255,.04);}
+
     /* TEAM STRIP */
     .team-strip{background:var(--dark);border-bottom:1px solid var(--border);padding:10px 24px;overflow-x:auto;}
     .team-strip-inner{max-width:1240px;margin:0 auto;display:flex;gap:8px;}
@@ -138,6 +150,14 @@
   </div>
 </header>
 
+<div class="mode-bar">
+  <div class="mode-bar-inner">
+    <button class="mode-btn active" id="mode-players" onclick="setMode('players')">⚾ 선수 기록</button>
+    <button class="mode-btn" id="mode-standings" onclick="setMode('standings')">🏆 KBO 순위</button>
+  </div>
+</div>
+
+<div id="playersView">
 <div class="team-strip">
   <div class="team-strip-inner" id="teamStrip"></div>
 </div>
@@ -207,6 +227,29 @@
     </div>
   </div>
 </main>
+</div>
+
+<div id="standingsView" style="display:none;">
+  <div class="standings-toolbar">
+    <button class="fetch-btn" id="standingsFetchBtn" onclick="loadStandings()">🔄 순위표 새로고침</button>
+    <div class="status-dot" id="standingsDot"></div>
+    <span class="status-text" id="standingsStatus">순위표를 불러오는 중...</span>
+  </div>
+  <main>
+    <div class="section">
+      <div class="sec-title">2026 KBO 팀 순위</div>
+      <div class="tbl-wrap">
+        <table id="standingsTable">
+          <thead><tr>
+            <th>순위</th><th>팀명</th><th>경기</th><th>승</th><th>패</th><th>무</th>
+            <th>승률</th><th>게임차</th><th>최근10경기</th><th>연속</th><th>홈</th><th>원정</th>
+          </tr></thead>
+          <tbody id="standingsBody"><tr><td colspan="12" class="empty-state">순위표를 불러오는 중...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
 
 <footer>데이터 출처: KBO 공식 기록실 (koreabaseball.com) | 구단 선택 시 선수단을 실시간으로 불러옵니다</footer>
 
@@ -721,6 +764,60 @@ function setTab(tab) {
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+tab).classList.add('active');
   if(currentPlayer) refreshView();
+}
+
+// ─── 모드 전환 (선수 기록 / 팀 순위) ────────────────────────
+let standingsLoaded = false;
+function setMode(mode) {
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mode-'+mode).classList.add('active');
+  document.getElementById('playersView').style.display = mode==='players' ? '' : 'none';
+  document.getElementById('standingsView').style.display = mode==='standings' ? '' : 'none';
+  if(mode==='standings' && !standingsLoaded) loadStandings();
+}
+
+// ─── KBO 팀 순위 ────────────────────────────────────────────
+const KBO_STANDINGS_URL = 'https://www.koreabaseball.com/Record/TeamRank/TeamRank.aspx';
+function setStandingsStatus(state, text) {
+  const dot = document.getElementById('standingsDot');
+  const txt = document.getElementById('standingsStatus');
+  dot.className = 'status-dot' + (state? ' '+state : '');
+  txt.textContent = text;
+}
+function findTeamByName(name) {
+  return TEAMS.find(t => name.includes(t.name.split(' ')[0]) || t.name.includes(name));
+}
+async function loadStandings() {
+  setStandingsStatus('loading','순위표 불러오는 중...');
+  const body = document.getElementById('standingsBody');
+  try {
+    const html = await fetchViaProxy(KBO_STANDINGS_URL);
+    const dp = new DOMParser();
+    const doc = dp.parseFromString(html, 'text/html');
+    const rows = Array.from(doc.querySelectorAll('table tbody tr')).filter(r => r.querySelectorAll('td').length >= 8);
+    if(!rows.length) throw new Error('순위표 행을 찾지 못함');
+    let html2 = '';
+    rows.forEach((row, idx) => {
+      const cells = Array.from(row.querySelectorAll('td')).map(c=>c.textContent.trim());
+      const rank = cells[0] || String(idx+1);
+      const teamName = cells[1] || '';
+      const team = findTeamByName(teamName);
+      const logo = team ? team.logo+' ' : '';
+      const cols = cells.slice(2);
+      while(cols.length < 10) cols.push('-');
+      html2 += `<tr${rank==='1'?' class="my-team"':''}>
+        <td class="${rank==='1'?'rk-1':''}">${rank}</td>
+        <td>${logo}${teamName}</td>
+        ${cols.slice(0,10).map(c=>`<td>${c}</td>`).join('')}
+      </tr>`;
+    });
+    body.innerHTML = html2;
+    standingsLoaded = true;
+    setStandingsStatus('ok', `업데이트 완료 (${new Date().toLocaleTimeString('ko-KR')})`);
+  } catch(e) {
+    body.innerHTML = '<tr><td colspan="12" class="empty-state">순위표를 불러오지 못했습니다 — 새로고침 버튼을 눌러 다시 시도해보세요</td></tr>';
+    setStandingsStatus('err','순위표 조회 실패 (프록시/사이트 구조 문제일 수 있음)');
+  }
 }
 
 // ─── BOOT ────────────────────────────────────────────────
