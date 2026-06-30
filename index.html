@@ -16,9 +16,9 @@
     body{background:var(--black);color:var(--text);font-family:'Segoe UI','Pretendard','Malgun Gothic',sans-serif;min-height:100vh;}
 
     /* HEADER */
-    header{background:linear-gradient(135deg,var(--team-dark) 0%,var(--black) 65%);padding:22px 24px 18px;border-bottom:2px solid var(--team);transition:all .4s;}
+    header{background:var(--dark);padding:22px 24px 18px;border-bottom:3px solid var(--team);transition:all .4s;}
     .header-inner{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
-    .team-logo{width:58px;height:58px;background:var(--team);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;border:2px solid var(--gold);flex-shrink:0;transition:background .4s;}
+    .team-logo{width:58px;height:58px;background:var(--card);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;border:2px solid var(--team);flex-shrink:0;transition:border-color .4s;}
     .header-info h1{font-size:1.55rem;font-weight:900;letter-spacing:-0.5px;}
     .header-info p{font-size:0.8rem;color:var(--muted);margin-top:3px;}
 
@@ -91,7 +91,7 @@
     tbody td{padding:9px 10px;text-align:center;}
     .yr-col{color:var(--gold);font-weight:700;}
     .best{color:#58D68D;font-weight:700;}
-    .hl-row{background:rgba(200,16,46,.08);}
+    .hl-row{background:rgba(255,255,255,.04);}
 
     /* ADV CARDS */
     .adv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
@@ -225,8 +225,25 @@ const TEAMS = [
   { code:'WO', name:'키움 히어로즈',   color:'#570514', dark:'#2E0309', logo:'🦸' },
 ];
 
-// ─── CORS PROXY ────────────────────────────────────────────
-const PROXY = 'https://api.allorigins.win/raw?url=';
+// ─── CORS PROXY (다중 폴백) ────────────────────────────────
+const PROXIES = [
+  url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+  url => 'https://corsproxy.io/?url=' + encodeURIComponent(url),
+  url => 'https://thingproxy.freeboard.io/fetch/' + url,
+];
+async function fetchViaProxy(url) {
+  let lastErr;
+  for (const build of PROXIES) {
+    try {
+      const res = await fetch(build(url));
+      if (!res.ok) throw new Error('status ' + res.status);
+      const text = await res.text();
+      if (!text || text.length < 200) throw new Error('empty response');
+      return text;
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('all proxies failed');
+}
 const KBO_ROSTER = code => `https://www.koreabaseball.com/Team/Player/${{HT:'Kia',OB:'Doosan',SS:'Samsung',LG:'LG',HH:'Hanwha',LT:'Lotte',KT:'KT',SK:'SSG',NC:'NC',WO:'Kiwoom'}[code]}.aspx`;
 const KBO_HITTER = id => `https://www.koreabaseball.com/Record/Player/HitterDetail/Basic.aspx?playerId=${id}`;
 const KBO_PITCHER = id => `https://www.koreabaseball.com/Record/Player/PitcherDetail/Basic.aspx?playerId=${id}`;
@@ -273,18 +290,19 @@ async function loadRoster(team) {
   setStatus('loading','선수단 조회 중...');
   ROSTER = { hitter:[], pitcher:[] };
   try {
-    const res = await fetch(PROXY + encodeURIComponent(KBO_ROSTER(team.code)));
-    if(!res.ok) throw new Error('roster fetch failed');
-    const html = await res.text();
+    const html = await fetchViaProxy(KBO_ROSTER(team.code));
     const dp = new DOMParser();
     const doc = dp.parseFromString(html, 'text/html');
-    const rows = doc.querySelectorAll('table tbody tr, .tableType01 tbody tr');
+    const rows = doc.querySelectorAll('table tr');
+    const seen = new Set();
     rows.forEach(row=>{
       const link = row.querySelector('a[href*="playerId="]');
       if(!link) return;
       const m = link.getAttribute('href').match(/playerId=(\d+)/);
       if(!m) return;
       const id = m[1];
+      if(seen.has(id)) return;
+      seen.add(id);
       const cells = row.querySelectorAll('td');
       const name = link.textContent.trim();
       const posText = Array.from(cells).map(c=>c.textContent.trim()).join(' ');
@@ -292,6 +310,9 @@ async function loadRoster(team) {
       const entry = { id, name, pos: isPitcher?'투수':'야수', num:'-', born:'-', throws:'-' };
       (isPitcher ? ROSTER.pitcher : ROSTER.hitter).push(entry);
     });
+    if(ROSTER.hitter.length===0 && ROSTER.pitcher.length===0){
+      setStatus('err','선수단 페이지 구조를 인식하지 못했습니다 — KBO 사이트 변경 가능성 (구단 재선택으로 재시도)');
+    }
   } catch(e) {
     setStatus('err','선수단 조회 실패 (프록시 응답 없음) — 구단을 다시 선택해보세요');
   }
@@ -350,9 +371,7 @@ async function fetchLiveData() {
   setStatus('loading','기록 불러오는 중...');
   try {
     const url = currentType === 'hitter' ? KBO_HITTER(p.id) : KBO_PITCHER(p.id);
-    const res = await fetch(PROXY + encodeURIComponent(url));
-    if(!res.ok) throw new Error('fetch failed');
-    const html = await res.text();
+    const html = await fetchViaProxy(url);
     const yearly = currentType === 'hitter' ? parseHitterYearly(html) : parsePitcherYearly(html);
     if(yearly && Object.keys(yearly).length) {
       if(!CAREER_CACHE[p.id]) CAREER_CACHE[p.id] = {};
