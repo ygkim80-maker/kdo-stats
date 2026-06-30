@@ -793,7 +793,12 @@ async function loadStandings() {
     const html = await fetchViaProxy(KBO_STANDINGS_URL);
     const dp = new DOMParser();
     const doc = dp.parseFromString(html, 'text/html');
-    const rows = Array.from(doc.querySelectorAll('table tbody tr')).filter(r => r.querySelectorAll('td').length >= 8);
+    const rows = Array.from(doc.querySelectorAll('table tbody tr')).filter(r => {
+      const cells = r.querySelectorAll('td');
+      if (cells.length < 8) return false;
+      const rankText = cells[0].textContent.trim();
+      return /^\d+$/.test(rankText) && Number(rankText) <= TEAMS.length;
+    });
     if(!rows.length) throw new Error('순위표 행을 찾지 못함');
     let html2 = '';
     rows.forEach((row, idx) => {
