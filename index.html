@@ -9,9 +9,9 @@
     :root {
       --team:#C8102E; --team-dark:#8B0000; --team-soft:rgba(200,16,46,.08);
       --blue:#3182F6; --blue-dark:#1B64DA; --blue-soft:#EAF2FF;
-      --bg:#FFFFFF; --surface:#F7F8FA; --card:#FFFFFF; --border:#E5E8EB;
+      --bg:#F2F4F6; --surface:#FFFFFF; --card:#FFFFFF; --border:#E5E8EB;
       --text:#191F28; --muted:#8B95A1; --green:#1EC992; --err:#F04452;
-      --radius:16px;
+      --radius:16px; --shadow:0 1px 2px rgba(25,31,40,.04), 0 4px 12px rgba(25,31,40,.05);
     }
     *{margin:0;padding:0;box-sizing:border-box;}
     body{background:var(--bg);color:var(--text);font-family:'Pretendard','Segoe UI','Malgun Gothic',sans-serif;min-height:100vh;}
@@ -63,7 +63,7 @@
 
     /* PLAYER HEADER CARD */
     .player-card{max-width:1240px;margin:20px auto 0;padding:0 24px;}
-    .p-card-inner{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
+    .p-card-inner{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow);}
     .p-avatar{width:64px;height:64px;background:var(--team);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--bg);box-shadow:0 0 0 2px var(--team);flex-shrink:0;}
     .p-name{font-size:1.5rem;font-weight:800;color:var(--text);}
     .p-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
@@ -82,7 +82,7 @@
 
     /* HERO STATS */
     .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;}
-    .s-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;transition:transform .2s,border-color .2s;}
+    .s-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;transition:transform .2s,border-color .2s;box-shadow:var(--shadow);}
     .s-card:hover{transform:translateY(-2px);border-color:var(--blue);}
     .s-card.hl{border-color:var(--blue);background:var(--blue-soft);}
     .s-card .lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;}
@@ -95,7 +95,7 @@
     .sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
     /* TABLE */
-    .tbl-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border);}
+    .tbl-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border);box-shadow:var(--shadow);}
     table{width:100%;border-collapse:collapse;font-size:.83rem;}
     thead th{background:var(--surface);color:var(--muted);font-size:.7rem;text-transform:uppercase;padding:10px 10px;text-align:center;border-bottom:1px solid var(--border);}
     tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
@@ -108,7 +108,7 @@
 
     /* ADV CARDS */
     .adv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
-    .adv-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px;}
+    .adv-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px;box-shadow:var(--shadow);}
     .adv-card .a-lbl{font-size:.7rem;color:var(--muted);}
     .adv-card .a-name{font-size:.85rem;font-weight:700;margin:3px 0 10px;color:var(--text);}
     .adv-card .a-val{font-size:1.9rem;font-weight:800;margin-bottom:6px;color:var(--text);}
@@ -119,13 +119,13 @@
     /* CHARTS */
     .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
     @media(max-width:700px){.chart-grid{grid-template-columns:1fr;}}
-    .c-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;}
+    .c-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);}
     .c-card h3{font-size:.78rem;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;}
 
     /* RADAR */
     .radar-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
     @media(max-width:700px){.radar-wrap{grid-template-columns:1fr;}}
-    .radar-desc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;}
+    .radar-desc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);}
     .radar-desc h3{font-size:.95rem;font-weight:800;margin-bottom:10px;color:var(--blue);}
     .radar-desc ul{list-style:none;margin-top:10px;}
     .radar-desc ul li{font-size:.8rem;padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;color:var(--text);}
@@ -260,9 +260,9 @@ const TEAMS = [
   { code:'HT', name:'KIA 타이거즈',   color:'#C8102E', dark:'#8B0000', logo:'🐯' },
   { code:'OB', name:'두산 베어스',     color:'#131230', dark:'#000000', logo:'🐻' },
   { code:'SS', name:'삼성 라이온즈',   color:'#074CA1', dark:'#042B5E', logo:'🦁' },
-  { code:'LG', name:'LG 트윈스',       color:'#C30452', dark:'#7A0233', logo:'🌀' },
+  { code:'LG', name:'LG 트윈스',       color:'#C30452', dark:'#7A0233', logo:'👬' },
   { code:'HH', name:'한화 이글스',     color:'#FF6600', dark:'#A03F00', logo:'🦅' },
-  { code:'LT', name:'롯데 자이언츠',   color:'#041E42', dark:'#000814', logo:'🦣' },
+  { code:'LT', name:'롯데 자이언츠',   color:'#041E42', dark:'#000814', logo:'👹' },
   { code:'KT', name:'KT 위즈',         color:'#000000', dark:'#1B1B1B', logo:'🧙' },
   { code:'SK', name:'SSG 랜더스',      color:'#CE0E2D', dark:'#7A0818', logo:'🚀' },
   { code:'NC', name:'NC 다이노스',     color:'#1D467D', dark:'#0F2747', logo:'🦖' },
