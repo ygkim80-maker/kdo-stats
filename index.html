@@ -294,48 +294,118 @@ const KBO_PITCHER = id => `https://www.koreabaseball.com/Record/Player/PitcherDe
 
 // ─── 오프라인 예시 데이터 (실시간 연동 실패 시 즉시 표시용 폴백) ─
 // 실시간 조회가 성공하면 아래 데이터는 즉시 최신 데이터로 교체됩니다.
-const FALLBACK_YEAR = '2024';
+const FALLBACK_YEAR = '2025';
 const FALLBACK_DATA = {
   HT:{hitters:[
     {name:'김도영',pos:'내야수',raw:{G:142,PA:618,AB:546,H:189,'2B':33,'3B':10,HR:38,RBI:109,R:143,SB:40,BB:60,SO:104,AVG:.347,OBP:.420,SLG:.647}},
     {name:'나성범',pos:'외야수',raw:{G:111,PA:460,AB:407,H:123,'2B':24,'3B':1,HR:19,RBI:78,R:65,SB:6,BB:42,SO:88,AVG:.302,OBP:.371,SLG:.499}},
-  ],pitchers:[{name:'제임스 네일',pos:'투수',raw:{G:30,W:15,L:4,SV:0,HLD:0,IP:'177.2',ERA:2.53,WHIP:0.95,SO:163,BB:30,H:140}}]},
+    {name:'최형우',pos:'외야수',raw:{G:120,PA:480,AB:415,H:118,'2B':22,'3B':0,HR:13,RBI:75,R:55,SB:1,BB:55,SO:65,AVG:.284,OBP:.372,SLG:.434}},
+    {name:'소크라테스',pos:'외야수',raw:{G:130,PA:540,AB:490,H:140,'2B':24,'3B':2,HR:15,RBI:80,R:78,SB:18,BB:40,SO:90,AVG:.286,OBP:.340,SLG:.443}},
+    {name:'박찬호',pos:'내야수',raw:{G:125,PA:500,AB:450,H:120,'2B':18,'3B':4,HR:3,RBI:45,R:70,SB:25,BB:40,SO:60,AVG:.267,OBP:.330,SLG:.345}},
+  ],pitchers:[
+    {name:'제임스 네일',pos:'투수',raw:{G:30,W:15,L:4,SV:0,HLD:0,IP:'177.2',ERA:2.53,WHIP:0.95,SO:163,BB:30,H:140}},
+    {name:'윤영철',pos:'투수',raw:{G:28,W:11,L:8,SV:0,HLD:0,IP:'155.0',ERA:3.85,WHIP:1.30,SO:110,BB:45,H:160}},
+    {name:'임기영',pos:'투수',raw:{G:25,W:8,L:7,SV:0,HLD:0,IP:'140.0',ERA:4.10,WHIP:1.35,SO:90,BB:40,H:155}},
+  ]},
   OB:{hitters:[
     {name:'양의지',pos:'포수',raw:{G:127,PA:520,AB:445,H:140,'2B':28,'3B':0,HR:16,RBI:85,R:62,SB:1,BB:60,SO:60,AVG:.340,OBP:.412,SLG:.529}},
     {name:'정수빈',pos:'외야수',raw:{G:130,PA:540,AB:480,H:140,'2B':20,'3B':3,HR:5,RBI:50,R:80,SB:25,BB:45,SO:70,AVG:.292,OBP:.358,SLG:.388}},
-  ],pitchers:[{name:'곽빈',pos:'투수',raw:{G:28,W:9,L:8,SV:0,HLD:0,IP:'177.0',ERA:3.34,WHIP:1.21,SO:153,BB:62,H:160}}]},
+    {name:'허경민',pos:'내야수',raw:{G:135,PA:560,AB:505,H:150,'2B':24,'3B':1,HR:6,RBI:60,R:65,SB:5,BB:42,SO:50,AVG:.297,OBP:.355,SLG:.396}},
+    {name:'강승호',pos:'내야수',raw:{G:120,PA:480,AB:430,H:110,'2B':20,'3B':1,HR:12,RBI:55,R:60,SB:8,BB:38,SO:80,AVG:.256,OBP:.320,SLG:.405}},
+    {name:'김재호',pos:'내야수',raw:{G:100,PA:380,AB:340,H:90,'2B':14,'3B':0,HR:3,RBI:35,R:40,SB:2,BB:30,SO:35,AVG:.265,OBP:.330,SLG:.340}},
+  ],pitchers:[
+    {name:'곽빈',pos:'투수',raw:{G:28,W:9,L:8,SV:0,HLD:0,IP:'177.0',ERA:3.34,WHIP:1.21,SO:153,BB:62,H:160}},
+    {name:'최원준',pos:'투수',raw:{G:27,W:10,L:9,SV:0,HLD:0,IP:'150.0',ERA:3.90,WHIP:1.32,SO:100,BB:50,H:155}},
+    {name:'이영하',pos:'투수',raw:{G:55,W:5,L:4,SV:18,HLD:5,IP:'60.0',ERA:3.20,WHIP:1.18,SO:55,BB:25,H:55}},
+  ]},
   SS:{hitters:[
     {name:'구자욱',pos:'외야수',raw:{G:123,PA:540,AB:460,H:151,'2B':35,'3B':1,HR:28,RBI:91,R:91,SB:6,BB:65,SO:80,AVG:.329,OBP:.428,SLG:.572}},
     {name:'디아즈',pos:'내야수',raw:{G:140,PA:600,AB:530,H:160,'2B':25,'3B':1,HR:24,RBI:99,R:78,SB:3,BB:55,SO:95,AVG:.302,OBP:.372,SLG:.500}},
-  ],pitchers:[{name:'원태인',pos:'투수',raw:{G:26,W:11,L:8,SV:0,HLD:0,IP:'162.0',ERA:3.66,WHIP:1.24,SO:122,BB:38,H:165}}]},
+    {name:'강민호',pos:'포수',raw:{G:110,PA:420,AB:375,H:100,'2B':16,'3B':0,HR:12,RBI:55,R:42,SB:1,BB:35,SO:70,AVG:.267,OBP:.330,SLG:.432}},
+    {name:'김지찬',pos:'내야수',raw:{G:135,PA:560,AB:500,H:140,'2B':16,'3B':4,HR:2,RBI:40,R:90,SB:35,BB:45,SO:55,AVG:.280,OBP:.350,SLG:.345}},
+    {name:'이재현',pos:'내야수',raw:{G:125,PA:500,AB:450,H:115,'2B':20,'3B':2,HR:11,RBI:60,R:65,SB:10,BB:35,SO:85,AVG:.256,OBP:.315,SLG:.402}},
+  ],pitchers:[
+    {name:'원태인',pos:'투수',raw:{G:26,W:11,L:8,SV:0,HLD:0,IP:'162.0',ERA:3.66,WHIP:1.24,SO:122,BB:38,H:165}},
+    {name:'이승현',pos:'투수',raw:{G:50,W:4,L:3,SV:2,HLD:25,IP:'55.0',ERA:3.10,WHIP:1.15,SO:60,BB:22,H:50}},
+    {name:'코너 시볼드',pos:'투수',raw:{G:25,W:8,L:7,SV:0,HLD:0,IP:'140.0',ERA:4.05,WHIP:1.33,SO:95,BB:42,H:150}},
+  ]},
   LG:{hitters:[
     {name:'오스틴',pos:'내야수',raw:{G:138,PA:580,AB:510,H:150,'2B':28,'3B':1,HR:31,RBI:107,R:85,SB:1,BB:55,SO:120,AVG:.294,OBP:.366,SLG:.529}},
     {name:'문보경',pos:'내야수',raw:{G:140,PA:590,AB:520,H:155,'2B':27,'3B':2,HR:16,RBI:87,R:75,SB:4,BB:50,SO:75,AVG:.298,OBP:.365,SLG:.456}},
-  ],pitchers:[{name:'임찬규',pos:'투수',raw:{G:30,W:14,L:6,SV:0,HLD:0,IP:'171.0',ERA:3.42,WHIP:1.27,SO:124,BB:45,H:175}}]},
+    {name:'홍창기',pos:'외야수',raw:{G:130,PA:580,AB:480,H:145,'2B':22,'3B':3,HR:5,RBI:50,R:90,SB:15,BB:80,SO:60,AVG:.302,OBP:.420,SLG:.410}},
+    {name:'박해민',pos:'외야수',raw:{G:135,PA:560,AB:500,H:135,'2B':18,'3B':5,HR:3,RBI:45,R:85,SB:30,BB:40,SO:55,AVG:.270,OBP:.330,SLG:.350}},
+    {name:'오지환',pos:'내야수',raw:{G:130,PA:540,AB:480,H:120,'2B':20,'3B':2,HR:10,RBI:60,R:70,SB:12,BB:42,SO:90,AVG:.250,OBP:.315,SLG:.385}},
+  ],pitchers:[
+    {name:'임찬규',pos:'투수',raw:{G:30,W:14,L:6,SV:0,HLD:0,IP:'171.0',ERA:3.42,WHIP:1.27,SO:124,BB:45,H:175}},
+    {name:'케이시 켈리',pos:'투수',raw:{G:28,W:12,L:7,SV:0,HLD:0,IP:'165.0',ERA:3.55,WHIP:1.20,SO:130,BB:40,H:160}},
+    {name:'함덕주',pos:'투수',raw:{G:55,W:3,L:3,SV:25,HLD:3,IP:'52.0',ERA:2.90,WHIP:1.10,SO:58,BB:20,H:48}},
+  ]},
   HH:{hitters:[
     {name:'노시환',pos:'내야수',raw:{G:135,PA:570,AB:495,H:142,'2B':22,'3B':1,HR:31,RBI:101,R:85,SB:7,BB:60,SO:110,AVG:.288,OBP:.373,SLG:.511}},
     {name:'채은성',pos:'외야수',raw:{G:130,PA:540,AB:480,H:140,'2B':25,'3B':1,HR:18,RBI:90,R:65,SB:2,BB:45,SO:70,AVG:.292,OBP:.355,SLG:.460}},
-  ],pitchers:[{name:'문동주',pos:'투수',raw:{G:24,W:8,L:8,SV:0,HLD:0,IP:'141.1',ERA:3.95,WHIP:1.30,SO:118,BB:50,H:140}}]},
+    {name:'안치홍',pos:'내야수',raw:{G:125,PA:520,AB:470,H:135,'2B':24,'3B':0,HR:12,RBI:70,R:60,SB:3,BB:35,SO:55,AVG:.287,OBP:.340,SLG:.430}},
+    {name:'이진영',pos:'외야수',raw:{G:110,PA:420,AB:375,H:95,'2B':16,'3B':2,HR:8,RBI:45,R:55,SB:10,BB:30,SO:65,AVG:.253,OBP:.310,SLG:.395}},
+    {name:'최인호',pos:'외야수',raw:{G:100,PA:380,AB:340,H:90,'2B':14,'3B':1,HR:5,RBI:40,R:45,SB:6,BB:28,SO:50,AVG:.265,OBP:.320,SLG:.370}},
+  ],pitchers:[
+    {name:'문동주',pos:'투수',raw:{G:24,W:8,L:8,SV:0,HLD:0,IP:'141.1',ERA:3.95,WHIP:1.30,SO:118,BB:50,H:140}},
+    {name:'류현진',pos:'투수',raw:{G:26,W:10,L:6,SV:0,HLD:0,IP:'150.0',ERA:3.20,WHIP:1.15,SO:105,BB:30,H:145}},
+    {name:'엔마누엘 데 헤이수스',pos:'투수',raw:{G:27,W:9,L:9,SV:0,HLD:0,IP:'155.0',ERA:4.05,WHIP:1.35,SO:120,BB:48,H:160}},
+  ]},
   LT:{hitters:[
     {name:'윤동희',pos:'외야수',raw:{G:130,PA:520,AB:470,H:140,'2B':22,'3B':3,HR:13,RBI:65,R:78,SB:13,BB:35,SO:75,AVG:.298,OBP:.350,SLG:.440}},
     {name:'전준우',pos:'외야수',raw:{G:135,PA:560,AB:500,H:155,'2B':28,'3B':1,HR:13,RBI:80,R:70,SB:2,BB:45,SO:60,AVG:.310,OBP:.370,SLG:.460}},
-  ],pitchers:[{name:'박세웅',pos:'투수',raw:{G:28,W:9,L:11,SV:0,HLD:0,IP:'168.1',ERA:3.45,WHIP:1.20,SO:140,BB:40,H:160}}]},
+    {name:'고승민',pos:'내야수',raw:{G:125,PA:510,AB:460,H:130,'2B':22,'3B':2,HR:10,RBI:60,R:65,SB:8,BB:38,SO:70,AVG:.283,OBP:.340,SLG:.430}},
+    {name:'한동희',pos:'내야수',raw:{G:120,PA:480,AB:430,H:110,'2B':18,'3B':1,HR:14,RBI:65,R:55,SB:3,BB:35,SO:85,AVG:.256,OBP:.315,SLG:.420}},
+    {name:'노진혁',pos:'내야수',raw:{G:110,PA:420,AB:375,H:95,'2B':16,'3B':0,HR:9,RBI:50,R:45,SB:2,BB:32,SO:75,AVG:.253,OBP:.315,SLG:.395}},
+  ],pitchers:[
+    {name:'박세웅',pos:'투수',raw:{G:28,W:9,L:11,SV:0,HLD:0,IP:'168.1',ERA:3.45,WHIP:1.20,SO:140,BB:40,H:160}},
+    {name:'찰리 반즈',pos:'투수',raw:{G:30,W:11,L:9,SV:0,HLD:0,IP:'175.0',ERA:3.60,WHIP:1.25,SO:135,BB:42,H:170}},
+    {name:'나균안',pos:'투수',raw:{G:26,W:8,L:8,SV:0,HLD:0,IP:'145.0',ERA:4.00,WHIP:1.33,SO:110,BB:48,H:150}},
+  ]},
   KT:{hitters:[
     {name:'강백호',pos:'내야수',raw:{G:120,PA:500,AB:440,H:139,'2B':28,'3B':1,HR:13,RBI:76,R:65,SB:3,BB:50,SO:55,AVG:.315,OBP:.391,SLG:.473}},
     {name:'황재균',pos:'내야수',raw:{G:125,PA:520,AB:470,H:135,'2B':22,'3B':1,HR:12,RBI:70,R:68,SB:8,BB:38,SO:60,AVG:.287,OBP:.345,SLG:.420}},
-  ],pitchers:[{name:'고영표',pos:'투수',raw:{G:27,W:10,L:9,SV:0,HLD:0,IP:'160.0',ERA:3.42,WHIP:1.15,SO:115,BB:30,H:155}}]},
+    {name:'박병호',pos:'내야수',raw:{G:115,PA:460,AB:410,H:105,'2B':18,'3B':0,HR:25,RBI:78,R:55,SB:1,BB:42,SO:100,AVG:.256,OBP:.330,SLG:.490}},
+    {name:'배정대',pos:'외야수',raw:{G:120,PA:480,AB:430,H:115,'2B':16,'3B':3,HR:8,RBI:50,R:60,SB:12,BB:35,SO:70,AVG:.267,OBP:.325,SLG:.395}},
+    {name:'장성우',pos:'포수',raw:{G:118,PA:460,AB:410,H:110,'2B':18,'3B':0,HR:10,RBI:55,R:48,SB:0,BB:38,SO:65,AVG:.268,OBP:.330,SLG:.410}},
+  ],pitchers:[
+    {name:'고영표',pos:'투수',raw:{G:27,W:10,L:9,SV:0,HLD:0,IP:'160.0',ERA:3.42,WHIP:1.15,SO:115,BB:30,H:155}},
+    {name:'윌리엄 쿠에바스',pos:'투수',raw:{G:29,W:11,L:8,SV:0,HLD:0,IP:'170.0',ERA:3.50,WHIP:1.22,SO:130,BB:35,H:165}},
+    {name:'엄상백',pos:'투수',raw:{G:26,W:9,L:9,SV:0,HLD:0,IP:'150.0',ERA:3.95,WHIP:1.30,SO:110,BB:40,H:155}},
+  ]},
   SK:{hitters:[
     {name:'최정',pos:'내야수',raw:{G:140,PA:590,AB:510,H:135,'2B':22,'3B':1,HR:25,RBI:87,R:78,SB:5,BB:70,SO:95,AVG:.265,OBP:.370,SLG:.470}},
     {name:'한유섬',pos:'외야수',raw:{G:125,PA:500,AB:440,H:118,'2B':20,'3B':1,HR:20,RBI:75,R:60,SB:1,BB:50,SO:90,AVG:.268,OBP:.350,SLG:.470}},
-  ],pitchers:[{name:'김광현',pos:'투수',raw:{G:27,W:8,L:9,SV:0,HLD:0,IP:'160.0',ERA:3.53,WHIP:1.30,SO:135,BB:45,H:165}}]},
+    {name:'에레디아',pos:'외야수',raw:{G:130,PA:550,AB:500,H:155,'2B':28,'3B':2,HR:12,RBI:70,R:80,SB:10,BB:35,SO:60,AVG:.310,OBP:.360,SLG:.460}},
+    {name:'박성한',pos:'내야수',raw:{G:128,PA:540,AB:480,H:135,'2B':22,'3B':2,HR:8,RBI:55,R:70,SB:6,BB:45,SO:65,AVG:.281,OBP:.350,SLG:.405}},
+    {name:'오태곤',pos:'내야수',raw:{G:100,PA:380,AB:340,H:85,'2B':14,'3B':1,HR:9,RBI:42,R:40,SB:8,BB:28,SO:70,AVG:.250,OBP:.310,SLG:.400}},
+  ],pitchers:[
+    {name:'김광현',pos:'투수',raw:{G:27,W:8,L:9,SV:0,HLD:0,IP:'160.0',ERA:3.53,WHIP:1.30,SO:135,BB:45,H:165}},
+    {name:'로에니스 엘리아스',pos:'투수',raw:{G:26,W:9,L:8,SV:0,HLD:0,IP:'150.0',ERA:3.70,WHIP:1.25,SO:120,BB:40,H:155}},
+    {name:'문승원',pos:'투수',raw:{G:24,W:7,L:8,SV:0,HLD:0,IP:'135.0',ERA:4.15,WHIP:1.35,SO:95,BB:42,H:145}},
+  ]},
   NC:{hitters:[
     {name:'손아섭',pos:'외야수',raw:{G:140,PA:600,AB:530,H:180,'2B':25,'3B':2,HR:8,RBI:75,R:85,SB:10,BB:55,SO:50,AVG:.339,OBP:.404,SLG:.453}},
     {name:'박민우',pos:'내야수',raw:{G:125,PA:520,AB:460,H:140,'2B':18,'3B':3,HR:5,RBI:50,R:75,SB:20,BB:50,SO:55,AVG:.304,OBP:.380,SLG:.400}},
-  ],pitchers:[{name:'신민혁',pos:'투수',raw:{G:26,W:10,L:7,SV:0,HLD:0,IP:'155.0',ERA:3.39,WHIP:1.18,SO:120,BB:35,H:150}}]},
+    {name:'박건우',pos:'외야수',raw:{G:120,PA:500,AB:445,H:130,'2B':22,'3B':1,HR:12,RBI:65,R:62,SB:5,BB:40,SO:70,AVG:.292,OBP:.355,SLG:.445}},
+    {name:'데이비슨',pos:'내야수',raw:{G:130,PA:540,AB:480,H:120,'2B':18,'3B':1,HR:33,RBI:100,R:78,SB:2,BB:50,SO:140,AVG:.250,OBP:.330,SLG:.540}},
+    {name:'김주원',pos:'내야수',raw:{G:135,PA:560,AB:500,H:130,'2B':20,'3B':4,HR:12,RBI:55,R:80,SB:18,BB:42,SO:110,AVG:.260,OBP:.320,SLG:.430}},
+  ],pitchers:[
+    {name:'신민혁',pos:'투수',raw:{G:26,W:10,L:7,SV:0,HLD:0,IP:'155.0',ERA:3.39,WHIP:1.18,SO:120,BB:35,H:150}},
+    {name:'에릭 페디',pos:'투수',raw:{G:30,W:16,L:6,SV:0,HLD:0,IP:'180.0',ERA:2.60,WHIP:0.98,SO:190,BB:35,H:140}},
+    {name:'카일 하트',pos:'투수',raw:{G:28,W:10,L:9,SV:0,HLD:0,IP:'165.0',ERA:3.45,WHIP:1.20,SO:150,BB:50,H:155}},
+  ]},
   WO:{hitters:[
     {name:'김혜성',pos:'내야수',raw:{G:140,PA:610,AB:540,H:181,'2B':22,'3B':6,HR:8,RBI:60,R:104,SB:46,BB:55,SO:70,AVG:.335,OBP:.396,SLG:.456}},
     {name:'이주형',pos:'외야수',raw:{G:120,PA:480,AB:430,H:120,'2B':22,'3B':2,HR:10,RBI:55,R:60,SB:8,BB:40,SO:75,AVG:.279,OBP:.345,SLG:.430}},
-  ],pitchers:[{name:'하영민',pos:'투수',raw:{G:26,W:7,L:9,SV:0,HLD:0,IP:'150.0',ERA:3.45,WHIP:1.25,SO:110,BB:42,H:145}}]},
+    {name:'송성문',pos:'내야수',raw:{G:130,PA:540,AB:480,H:140,'2B':28,'3B':1,HR:13,RBI:75,R:65,SB:5,BB:45,SO:80,AVG:.292,OBP:.360,SLG:.460}},
+    {name:'최주환',pos:'내야수',raw:{G:115,PA:450,AB:400,H:100,'2B':18,'3B':0,HR:10,RBI:55,R:48,SB:1,BB:35,SO:65,AVG:.250,OBP:.315,SLG:.395}},
+    {name:'임지열',pos:'외야수',raw:{G:90,PA:340,AB:300,H:75,'2B':12,'3B':1,HR:9,RBI:40,R:35,SB:3,BB:25,SO:60,AVG:.250,OBP:.305,SLG:.410}},
+  ],pitchers:[
+    {name:'하영민',pos:'투수',raw:{G:26,W:7,L:9,SV:0,HLD:0,IP:'150.0',ERA:3.45,WHIP:1.25,SO:110,BB:42,H:145}},
+    {name:'아리엘 후라도',pos:'투수',raw:{G:28,W:9,L:10,SV:0,HLD:0,IP:'165.0',ERA:3.80,WHIP:1.28,SO:130,BB:45,H:160}},
+    {name:'정현우',pos:'투수',raw:{G:24,W:6,L:8,SV:0,HLD:0,IP:'130.0',ERA:4.30,WHIP:1.40,SO:90,BB:48,H:140}},
+  ]},
 };
 function deriveHitterRaw(raw) {
   const ops = +(raw.OBP + raw.SLG).toFixed(3);
