@@ -984,6 +984,38 @@ function renderFallbackStandings() {
   </tr>`).join('');
   setStandingsStatus('err','⚠ 예시 표시 중 — 실시간 순위 연동 시도 중...');
 }
+function renderStandingsRows(rows) {
+  const body = document.getElementById('standingsBody');
+  body.innerHTML = rows.map((r, idx) => {
+    const rank = r.rank || String(idx+1);
+    const team = findTeamByName(r.team || '');
+    const logo = team ? team.logo+' ' : '';
+    const cols = (r.cols || []).slice();
+    while(cols.length < 10) cols.push('-');
+    return `<tr${rank==='1'?' class="my-team"':''}>
+      <td class="${rank==='1'?'rk-1':''}">${rank}</td>
+      <td>${logo}${r.team||''}</td>
+      ${cols.slice(0,10).map(c=>`<td>${c}</td>`).join('')}
+    </tr>`;
+  }).join('');
+}
+
+// data/standings.json: GitHub Actions가 koreabaseball.com을 서버에서 직접 스크래핑해 주기적으로 갱신.
+// 브라우저 CORS 프록시 없이 같은 출처(same-origin)로 불러오므로 가장 안정적인 1차 데이터 소스.
+async function loadStaticStandings() {
+  try {
+    const res = await fetchWithTimeout('./data/standings.json?t=' + Date.now(), 6000);
+    if(!res.ok) throw new Error('status '+res.status);
+    const data = await res.json();
+    if(!data.rows || !data.rows.length) throw new Error('no rows');
+    renderStandingsRows(data.rows);
+    standingsLoaded = true;
+    const when = data.updatedAt ? new Date(data.updatedAt).toLocaleString('ko-KR') : '-';
+    setStandingsStatus('ok', `자동 수집 데이터 (${when} 기준) · 실시간 보정 시도 중...`);
+    return true;
+  } catch(e) { return false; }
+}
+
 async function loadStandingsWithRetry(attemptsLeft) {
   const ok = await loadStandings();
   if(!ok && attemptsLeft > 0) setTimeout(()=>loadStandingsWithRetry(attemptsLeft-1), 15000);
@@ -991,7 +1023,8 @@ async function loadStandingsWithRetry(attemptsLeft) {
 async function loadStandings() {
   setStandingsStatus('loading','순위표 불러오는 중...');
   const body = document.getElementById('standingsBody');
-  if(!standingsLoaded) renderFallbackStandings();
+  const hadStatic = await loadStaticStandings();
+  if(!hadStatic && !standingsLoaded) renderFallbackStandings();
   try {
     const html = await fetchViaProxy(KBO_STANDINGS_URL);
     const dp = new DOMParser();
