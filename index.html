@@ -7,18 +7,19 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --team:#C8102E; --team-dark:#8B0000;
+      --team:#FFD700; --team-dark:#F2F2F5;
+      --accent:#FFD700; --accent2:#F5F5F5;
       --black:#0D0D10; --dark:#16161A; --card:#1E1E24; --border:#2C2C34;
-      --text:#F2F2F5; --muted:#9A9AA5; --gold:#FFD700; --green:#2ECC71;
+      --text:#F2F2F5; --muted:#9A9AA5; --gold:#FFD700; --green:#2ECC71; --err:#E5484D;
       --radius:14px;
     }
     *{margin:0;padding:0;box-sizing:border-box;}
     body{background:var(--black);color:var(--text);font-family:'Segoe UI','Pretendard','Malgun Gothic',sans-serif;min-height:100vh;}
 
     /* HEADER */
-    header{background:var(--dark);padding:22px 24px 18px;border-bottom:3px solid var(--team);transition:all .4s;}
+    header{background:var(--dark);padding:22px 24px 18px;border-bottom:3px solid var(--accent);transition:all .4s;}
     .header-inner{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
-    .team-logo{width:58px;height:58px;background:var(--card);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;border:2px solid var(--team);flex-shrink:0;transition:border-color .4s;}
+    .team-logo{width:58px;height:58px;background:var(--card);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;border:2px solid var(--accent);flex-shrink:0;}
     .header-info h1{font-size:1.55rem;font-weight:900;letter-spacing:-0.5px;}
     .header-info p{font-size:0.8rem;color:var(--muted);margin-top:3px;}
 
@@ -26,7 +27,7 @@
     .mode-bar{background:var(--black);border-bottom:1px solid var(--border);padding:8px 24px;}
     .mode-bar-inner{max-width:1240px;margin:0 auto;display:flex;gap:8px;}
     .mode-btn{padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;}
-    .mode-btn.active{background:var(--card);color:var(--text);border-color:var(--team);}
+    .mode-btn.active{background:var(--card);color:var(--text);border-color:var(--accent);}
 
     /* STANDINGS */
     .standings-toolbar{max-width:1240px;margin:16px auto 0;padding:0 24px;display:flex;align-items:center;gap:10px;}
@@ -38,32 +39,32 @@
     .team-strip{background:var(--dark);border-bottom:1px solid var(--border);padding:10px 24px;overflow-x:auto;}
     .team-strip-inner{max-width:1240px;margin:0 auto;display:flex;gap:8px;}
     .team-chip{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
-    .team-chip:hover{border-color:var(--team);color:var(--text);}
-    .team-chip.active{background:var(--team);color:#fff;border-color:var(--team);}
+    .team-chip:hover{border-color:var(--accent);color:var(--text);}
+    .team-chip.active{background:var(--team);color:#0D0D10;border-color:var(--team);font-weight:900;}
 
     /* SELECTOR */
     .selector-bar{background:var(--dark);border-bottom:1px solid var(--border);padding:12px 24px;}
     .selector-inner{max-width:1240px;margin:0 auto;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
     .type-btns{display:flex;gap:4px;}
     .type-btn{padding:7px 14px;border:1px solid var(--border);background:none;color:var(--muted);border-radius:20px;cursor:pointer;font-size:0.82rem;transition:all .2s;}
-    .type-btn.active{background:var(--team);color:#fff;border-color:var(--team);}
+    .type-btn.active{background:var(--accent);color:#0D0D10;border-color:var(--accent);}
     .player-select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;font-size:0.85rem;min-width:200px;cursor:pointer;}
-    .fetch-btn{padding:7px 16px;background:var(--team);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;transition:opacity .2s;}
+    .fetch-btn{padding:7px 16px;background:var(--accent);color:#0D0D10;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;transition:opacity .2s;}
     .fetch-btn:hover{opacity:.85;}
     .fetch-btn:disabled{opacity:.5;cursor:not-allowed;}
     .status-dot{width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0;}
     .status-dot.loading{background:var(--gold);animation:pulse 1s infinite;}
     .status-dot.ok{background:var(--green);}
-    .status-dot.err{background:var(--team);}
+    .status-dot.err{background:var(--err);}
     @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
     .status-text{font-size:0.75rem;color:var(--muted);}
     .auto-refresh{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted);}
-    .auto-refresh input{accent-color:var(--team);}
+    .auto-refresh input{accent-color:var(--accent);}
 
     /* PLAYER HEADER CARD */
     .player-card{max-width:1240px;margin:20px auto 0;padding:0 24px;}
     .p-card-inner{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
-    .p-avatar{width:64px;height:64px;background:var(--team);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--gold);flex-shrink:0;}
+    .p-avatar{width:64px;height:64px;background:var(--team);color:#0D0D10;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--gold);flex-shrink:0;}
     .p-name{font-size:1.5rem;font-weight:900;}
     .p-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
     .p-tag{font-size:0.72rem;background:rgba(255,255,255,.06);border:1px solid var(--border);padding:3px 9px;border-radius:12px;color:var(--muted);}
@@ -82,7 +83,7 @@
     /* HERO STATS */
     .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;}
     .s-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;transition:transform .2s,border-color .2s;}
-    .s-card:hover{transform:translateY(-2px);border-color:var(--team);}
+    .s-card:hover{transform:translateY(-2px);border-color:var(--accent);}
     .s-card.hl{border-color:var(--gold);background:linear-gradient(135deg,rgba(255,215,0,.07),var(--card));}
     .s-card .lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;}
     .s-card .val{font-size:1.7rem;font-weight:900;line-height:1;}
@@ -310,8 +311,6 @@ function buildTeamStrip() {
 function applyTeamTheme(team) {
   document.documentElement.style.setProperty('--team', team.color);
   document.documentElement.style.setProperty('--team-dark', team.dark);
-  document.getElementById('teamLogo').textContent = team.logo;
-  document.getElementById('teamTitle').textContent = `${team.name} 스탯 대시보드`;
   document.querySelectorAll('.team-chip').forEach(c=>c.classList.remove('active'));
   const chip = document.getElementById('chip-'+team.code);
   if(chip) chip.classList.add('active');
@@ -648,7 +647,7 @@ function renderRadar(s) {
       Math.max(0,(1-(s.SO||0)/(s.PA||1))*100),
       Math.min((s.HR||0)/40*100,100),
     ],
-    backgroundColor:'rgba(200,16,46,0.25)',borderColor:'var(--team)',pointBackgroundColor:'#FFD700',borderWidth:2
+    backgroundColor:'rgba(255,215,0,0.25)',borderColor:'#FFD700',pointBackgroundColor:'#FFFFFF',borderWidth:2
   }]};
   if(radarChart) radarChart.destroy();
   radarChart=new Chart(document.getElementById('radarChart'),{type:'radar',data,options:{
@@ -672,7 +671,7 @@ function renderPitcherRadar(s) {
       Math.max(0,(1-(s.BB||80)/80)*100),
       Math.min(((s.W||0)/((s.W||0)+(s.L||1)))*100,100),
     ],
-    backgroundColor:'rgba(200,16,46,0.25)',borderColor:'var(--team)',pointBackgroundColor:'#FFD700',borderWidth:2
+    backgroundColor:'rgba(255,215,0,0.25)',borderColor:'#FFD700',pointBackgroundColor:'#FFFFFF',borderWidth:2
   }]};
   if(radarChart) radarChart.destroy();
   radarChart=new Chart(document.getElementById('radarChart'),{type:'radar',data,options:{
@@ -724,7 +723,7 @@ function renderTrend() {
     opsChart=new Chart(document.getElementById('opsChart'),{type:'line',data:{labels:yrs,datasets:[{label:'이닝',data:yrs.map(y=>{const s=getStats(y);if(!s)return null;return parseFloat(s.IP)||0;}),borderColor:'#9B59B6',backgroundColor:'rgba(155,89,182,.1)',fill:true,tension:.4,pointBackgroundColor:'#FFD700',pointRadius:6}]},options:chartOpts()});
   }
   if(warChart) warChart.destroy();
-  warChart=new Chart(document.getElementById('warChart'),{type:'bar',data:{labels:yrs,datasets:[{label:currentType==='hitter'?'홈런':'탈삼진',data:yrs.map(y=>getStats(y)?.[currentType==='hitter'?'HR':'SO']||0),backgroundColor:'rgba(200,16,46,.7)'}]},options:chartOpts()});
+  warChart=new Chart(document.getElementById('warChart'),{type:'bar',data:{labels:yrs,datasets:[{label:currentType==='hitter'?'홈런':'탈삼진',data:yrs.map(y=>getStats(y)?.[currentType==='hitter'?'HR':'SO']||0),backgroundColor:'rgba(255,215,0,.7)'}]},options:chartOpts()});
 }
 
 // ─ 통산 ─
