@@ -7,87 +7,87 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --team:#FFD700; --team-dark:#F2F2F5;
-      --accent:#FFD700; --accent2:#F5F5F5;
-      --black:#0D0D10; --dark:#16161A; --card:#1E1E24; --border:#2C2C34;
-      --text:#F2F2F5; --muted:#9A9AA5; --gold:#FFD700; --green:#2ECC71; --err:#E5484D;
-      --radius:14px;
+      --team:#C8102E; --team-dark:#8B0000; --team-soft:rgba(200,16,46,.08);
+      --blue:#3182F6; --blue-dark:#1B64DA; --blue-soft:#EAF2FF;
+      --bg:#FFFFFF; --surface:#F7F8FA; --card:#FFFFFF; --border:#E5E8EB;
+      --text:#191F28; --muted:#8B95A1; --green:#1EC992; --err:#F04452;
+      --radius:16px;
     }
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{background:var(--black);color:var(--text);font-family:'Segoe UI','Pretendard','Malgun Gothic',sans-serif;min-height:100vh;}
+    body{background:var(--bg);color:var(--text);font-family:'Pretendard','Segoe UI','Malgun Gothic',sans-serif;min-height:100vh;}
 
     /* HEADER */
-    header{background:var(--dark);padding:22px 24px 18px;border-bottom:3px solid var(--accent);transition:all .4s;}
+    header{background:var(--bg);padding:24px 24px 18px;border-bottom:1px solid var(--border);transition:all .4s;}
     .header-inner{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
-    .team-logo{width:58px;height:58px;background:var(--card);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;border:2px solid var(--accent);flex-shrink:0;}
-    .header-info h1{font-size:1.55rem;font-weight:900;letter-spacing:-0.5px;}
-    .header-info p{font-size:0.8rem;color:var(--muted);margin-top:3px;}
+    .team-logo{width:56px;height:56px;background:var(--team-soft);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;border:2px solid var(--team);flex-shrink:0;transition:all .4s;}
+    .header-info h1{font-size:1.5rem;font-weight:800;letter-spacing:-0.5px;color:var(--text);}
+    .header-info p{font-size:0.82rem;color:var(--muted);margin-top:3px;}
 
     /* MODE BAR */
-    .mode-bar{background:var(--black);border-bottom:1px solid var(--border);padding:8px 24px;}
+    .mode-bar{background:var(--bg);border-bottom:1px solid var(--border);padding:10px 24px;}
     .mode-bar-inner{max-width:1240px;margin:0 auto;display:flex;gap:8px;}
-    .mode-btn{padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;}
-    .mode-btn.active{background:var(--card);color:var(--text);border-color:var(--accent);}
+    .mode-btn{padding:9px 18px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:.84rem;font-weight:700;cursor:pointer;transition:all .2s;}
+    .mode-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
 
     /* STANDINGS */
     .standings-toolbar{max-width:1240px;margin:16px auto 0;padding:0 24px;display:flex;align-items:center;gap:10px;}
-    #standingsTable .rk-1{color:var(--gold);font-weight:900;}
+    #standingsTable .rk-1{color:var(--blue);font-weight:900;}
     #standingsTable td:nth-child(2){text-align:left;font-weight:700;}
-    #standingsTable tr.my-team{background:rgba(255,255,255,.04);}
+    #standingsTable tr.my-team{background:var(--blue-soft);}
 
     /* TEAM STRIP */
-    .team-strip{background:var(--dark);border-bottom:1px solid var(--border);padding:10px 24px;overflow-x:auto;}
+    .team-strip{background:var(--bg);border-bottom:1px solid var(--border);padding:12px 24px;overflow-x:auto;}
     .team-strip-inner{max-width:1240px;margin:0 auto;display:flex;gap:8px;}
-    .team-chip{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
-    .team-chip:hover{border-color:var(--accent);color:var(--text);}
-    .team-chip.active{background:var(--team);color:#0D0D10;border-color:var(--team);font-weight:900;}
+    .team-chip{flex-shrink:0;padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:.8rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+    .team-chip:hover{border-color:var(--blue);color:var(--text);}
+    .team-chip.active{background:var(--team);color:#fff;border-color:var(--team);font-weight:900;}
 
     /* SELECTOR */
-    .selector-bar{background:var(--dark);border-bottom:1px solid var(--border);padding:12px 24px;}
+    .selector-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;}
     .selector-inner{max-width:1240px;margin:0 auto;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
     .type-btns{display:flex;gap:4px;}
-    .type-btn{padding:7px 14px;border:1px solid var(--border);background:none;color:var(--muted);border-radius:20px;cursor:pointer;font-size:0.82rem;transition:all .2s;}
-    .type-btn.active{background:var(--accent);color:#0D0D10;border-color:var(--accent);}
-    .player-select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;font-size:0.85rem;min-width:200px;cursor:pointer;}
-    .fetch-btn{padding:7px 16px;background:var(--accent);color:#0D0D10;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;transition:opacity .2s;}
-    .fetch-btn:hover{opacity:.85;}
+    .type-btn{padding:8px 16px;border:1px solid var(--border);background:var(--bg);color:var(--muted);border-radius:20px;cursor:pointer;font-size:0.84rem;transition:all .2s;}
+    .type-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+    .player-select{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:10px;font-size:0.85rem;min-width:200px;cursor:pointer;}
+    .fetch-btn{padding:8px 18px;background:var(--blue);color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:0.84rem;font-weight:700;transition:opacity .2s;}
+    .fetch-btn:hover{opacity:.88;}
     .fetch-btn:disabled{opacity:.5;cursor:not-allowed;}
-    .status-dot{width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0;}
-    .status-dot.loading{background:var(--gold);animation:pulse 1s infinite;}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:#C4C9D1;flex-shrink:0;}
+    .status-dot.loading{background:var(--blue);animation:pulse 1s infinite;}
     .status-dot.ok{background:var(--green);}
     .status-dot.err{background:var(--err);}
     @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
     .status-text{font-size:0.75rem;color:var(--muted);}
     .auto-refresh{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted);}
-    .auto-refresh input{accent-color:var(--accent);}
+    .auto-refresh input{accent-color:var(--blue);}
 
     /* PLAYER HEADER CARD */
     .player-card{max-width:1240px;margin:20px auto 0;padding:0 24px;}
-    .p-card-inner{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
-    .p-avatar{width:64px;height:64px;background:var(--team);color:#0D0D10;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--gold);flex-shrink:0;}
-    .p-name{font-size:1.5rem;font-weight:900;}
+    .p-card-inner{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
+    .p-avatar{width:64px;height:64px;background:var(--team);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--bg);box-shadow:0 0 0 2px var(--team);flex-shrink:0;}
+    .p-name{font-size:1.5rem;font-weight:800;color:var(--text);}
     .p-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
-    .p-tag{font-size:0.72rem;background:rgba(255,255,255,.06);border:1px solid var(--border);padding:3px 9px;border-radius:12px;color:var(--muted);}
+    .p-tag{font-size:0.72rem;background:var(--bg);border:1px solid var(--border);padding:3px 9px;border-radius:12px;color:var(--muted);}
     .p-tag b{color:var(--text);}
-    .badge-mvp{background:linear-gradient(135deg,var(--gold),#FFA500);color:#000;font-size:0.65rem;font-weight:800;padding:3px 9px;border-radius:12px;}
+    .badge-mvp{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;font-size:0.65rem;font-weight:800;padding:3px 9px;border-radius:12px;}
 
     /* TABS */
     .tab-bar{max-width:1240px;margin:16px auto 0;padding:0 24px;}
     .tab-bar-inner{border-bottom:1px solid var(--border);display:flex;gap:4px;}
     .tab-btn{padding:9px 16px;background:none;border:none;color:var(--muted);font-size:0.83rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
-    .tab-btn.active{color:var(--text);border-bottom-color:var(--gold);}
+    .tab-btn.active{color:var(--text);border-bottom-color:var(--blue);}
 
     /* MAIN */
     main{max-width:1240px;margin:0 auto;padding:20px 24px;}
 
     /* HERO STATS */
     .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;}
-    .s-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;transition:transform .2s,border-color .2s;}
-    .s-card:hover{transform:translateY(-2px);border-color:var(--accent);}
-    .s-card.hl{border-color:var(--gold);background:linear-gradient(135deg,rgba(255,215,0,.07),var(--card));}
+    .s-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;transition:transform .2s,border-color .2s;}
+    .s-card:hover{transform:translateY(-2px);border-color:var(--blue);}
+    .s-card.hl{border-color:var(--blue);background:var(--blue-soft);}
     .s-card .lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;}
-    .s-card .val{font-size:1.7rem;font-weight:900;line-height:1;}
-    .s-card .rnk{font-size:.68rem;color:var(--gold);margin-top:3px;}
+    .s-card .val{font-size:1.7rem;font-weight:800;line-height:1;color:var(--text);}
+    .s-card .rnk{font-size:.68rem;color:var(--blue);margin-top:3px;}
 
     /* SECTION */
     .section{margin-bottom:24px;}
@@ -95,23 +95,23 @@
     .sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
     /* TABLE */
-    .tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);}
+    .tbl-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border);}
     table{width:100%;border-collapse:collapse;font-size:.83rem;}
-    thead th{background:var(--dark);color:var(--muted);font-size:.7rem;text-transform:uppercase;padding:9px 10px;text-align:center;border-bottom:1px solid var(--border);}
+    thead th{background:var(--surface);color:var(--muted);font-size:.7rem;text-transform:uppercase;padding:10px 10px;text-align:center;border-bottom:1px solid var(--border);}
     tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
     tbody tr:last-child{border-bottom:none;}
-    tbody tr:hover{background:rgba(255,255,255,.03);}
-    tbody td{padding:9px 10px;text-align:center;}
-    .yr-col{color:var(--gold);font-weight:700;}
-    .best{color:#58D68D;font-weight:700;}
-    .hl-row{background:rgba(255,255,255,.04);}
+    tbody tr:hover{background:var(--surface);}
+    tbody td{padding:10px 10px;text-align:center;color:var(--text);}
+    .yr-col{color:var(--blue);font-weight:700;}
+    .best{color:#1EC992;font-weight:700;}
+    .hl-row{background:var(--blue-soft);}
 
     /* ADV CARDS */
     .adv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
-    .adv-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;}
+    .adv-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px;}
     .adv-card .a-lbl{font-size:.7rem;color:var(--muted);}
-    .adv-card .a-name{font-size:.85rem;font-weight:700;margin:3px 0 10px;}
-    .adv-card .a-val{font-size:1.9rem;font-weight:900;margin-bottom:6px;}
+    .adv-card .a-name{font-size:.85rem;font-weight:700;margin:3px 0 10px;color:var(--text);}
+    .adv-card .a-val{font-size:1.9rem;font-weight:800;margin-bottom:6px;color:var(--text);}
     .bar-bg{background:var(--border);border-radius:4px;height:5px;overflow:hidden;}
     .bar-fill{height:100%;border-radius:4px;transition:width 1s ease;}
     .bar-lbl{display:flex;justify-content:space-between;font-size:.66rem;color:var(--muted);margin-top:3px;}
@@ -119,17 +119,17 @@
     /* CHARTS */
     .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
     @media(max-width:700px){.chart-grid{grid-template-columns:1fr;}}
-    .c-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+    .c-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;}
     .c-card h3{font-size:.78rem;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;}
 
     /* RADAR */
     .radar-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
     @media(max-width:700px){.radar-wrap{grid-template-columns:1fr;}}
-    .radar-desc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
-    .radar-desc h3{font-size:.95rem;font-weight:800;margin-bottom:10px;color:var(--gold);}
+    .radar-desc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;}
+    .radar-desc h3{font-size:.95rem;font-weight:800;margin-bottom:10px;color:var(--blue);}
     .radar-desc ul{list-style:none;margin-top:10px;}
-    .radar-desc ul li{font-size:.8rem;padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
-    .radar-desc ul li span{color:var(--gold);font-weight:700;}
+    .radar-desc ul li{font-size:.8rem;padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;color:var(--text);}
+    .radar-desc ul li span{color:var(--blue);font-weight:700;}
 
     .tab-panel{display:none;}
     .tab-panel.active{display:block;}
@@ -311,6 +311,9 @@ function buildTeamStrip() {
 function applyTeamTheme(team) {
   document.documentElement.style.setProperty('--team', team.color);
   document.documentElement.style.setProperty('--team-dark', team.dark);
+  document.documentElement.style.setProperty('--team-soft', team.color+'14');
+  document.getElementById('teamLogo').textContent = team.logo;
+  document.getElementById('teamTitle').textContent = `${team.name} 스탯 대시보드`;
   document.querySelectorAll('.team-chip').forEach(c=>c.classList.remove('active'));
   const chip = document.getElementById('chip-'+team.code);
   if(chip) chip.classList.add('active');
@@ -551,7 +554,7 @@ function renderHitterBasic(s) {
     {k:'H',   l:'안타',  f:v=>v,             cls:''},
     {k:'SB',  l:'도루',  f:v=>v,             cls:'color:#9B59B6'},
     {k:'OPS', l:'OPS',   f:v=>v.toFixed(3),  cls:'color:#3498DB'},
-    {k:'WAR', l:'WAR',   f:v=>v!==null?v.toFixed(1):'-', cls:'color:#FFD700'},
+    {k:'WAR', l:'WAR',   f:v=>v!==null?v.toFixed(1):'-', cls:'color:#3182F6'},
   ];
   if(!s){ document.getElementById('heroGrid').innerHTML='<div class="empty-state">🔄 실시간 업데이트 버튼을 눌러 기록을 불러오세요</div>'; document.getElementById('detailHead').innerHTML=''; document.getElementById('detailRow').innerHTML=''; return; }
   document.getElementById('heroGrid').innerHTML = defs.map(d=>{
@@ -576,7 +579,7 @@ function renderPitcherBasic(s) {
     {k:'SO',  l:'탈삼진', f:v=>v,           cls:'color:#3498DB'},
     {k:'WHIP',l:'WHIP',   f:v=>v.toFixed(2),cls:'color:#E67E22'},
     {k:'BB',  l:'볼넷',   f:v=>v,           cls:''},
-    {k:'WAR', l:'WAR',    f:v=>v!==null?v.toFixed(1):'-',cls:'color:#FFD700'},
+    {k:'WAR', l:'WAR',    f:v=>v!==null?v.toFixed(1):'-',cls:'color:#3182F6'},
   ];
   if(!s){ document.getElementById('heroGrid').innerHTML='<div class="empty-state">🔄 실시간 업데이트 버튼을 눌러 기록을 불러오세요</div>'; document.getElementById('detailHead').innerHTML=''; document.getElementById('detailRow').innerHTML=''; return; }
   document.getElementById('heroGrid').innerHTML = defs.map(d=>{
@@ -647,12 +650,12 @@ function renderRadar(s) {
       Math.max(0,(1-(s.SO||0)/(s.PA||1))*100),
       Math.min((s.HR||0)/40*100,100),
     ],
-    backgroundColor:'rgba(255,215,0,0.25)',borderColor:'#FFD700',pointBackgroundColor:'#FFFFFF',borderWidth:2
+    backgroundColor:'rgba(49,130,246,0.18)',borderColor:'#3182F6',pointBackgroundColor:'#3182F6',borderWidth:2
   }]};
   if(radarChart) radarChart.destroy();
   radarChart=new Chart(document.getElementById('radarChart'),{type:'radar',data,options:{
-    scales:{r:{min:0,max:100,grid:{color:'#333'},pointLabels:{color:'#ccc',font:{size:12}},ticks:{display:false},angleLines:{color:'#333'}}},
-    plugins:{legend:{labels:{color:'#ccc'}}}
+    scales:{r:{min:0,max:100,grid:{color:'#E5E8EB'},pointLabels:{color:'#191F28',font:{size:12}},ticks:{display:false},angleLines:{color:'#E5E8EB'}}},
+    plugins:{legend:{labels:{color:'#191F28'}}}
   }});
   document.getElementById('radarTitle').textContent=`${currentPlayer.name} ${latestYear()} 능력치`;
   document.getElementById('radarList').innerHTML=[
@@ -671,12 +674,12 @@ function renderPitcherRadar(s) {
       Math.max(0,(1-(s.BB||80)/80)*100),
       Math.min(((s.W||0)/((s.W||0)+(s.L||1)))*100,100),
     ],
-    backgroundColor:'rgba(255,215,0,0.25)',borderColor:'#FFD700',pointBackgroundColor:'#FFFFFF',borderWidth:2
+    backgroundColor:'rgba(49,130,246,0.18)',borderColor:'#3182F6',pointBackgroundColor:'#3182F6',borderWidth:2
   }]};
   if(radarChart) radarChart.destroy();
   radarChart=new Chart(document.getElementById('radarChart'),{type:'radar',data,options:{
-    scales:{r:{min:0,max:100,grid:{color:'#333'},pointLabels:{color:'#ccc',font:{size:12}},ticks:{display:false},angleLines:{color:'#333'}}},
-    plugins:{legend:{labels:{color:'#ccc'}}}
+    scales:{r:{min:0,max:100,grid:{color:'#E5E8EB'},pointLabels:{color:'#191F28',font:{size:12}},ticks:{display:false},angleLines:{color:'#E5E8EB'}}},
+    plugins:{legend:{labels:{color:'#191F28'}}}
   }});
   document.getElementById('radarTitle').textContent=`${currentPlayer.name} ${latestYear()} 능력치`;
   document.getElementById('radarList').innerHTML=[
@@ -690,7 +693,7 @@ let avgChart=null,hrChart=null,opsChart=null,warChart=null;
 function renderTrend() {
   const yrs = getAllYears();
   if(!yrs.length){ document.querySelectorAll('#panel-trend canvas').forEach(c=>{}); return; }
-  const chartOpts = ()=>({responsive:true,plugins:{legend:{labels:{color:'#ccc',boxWidth:12}}},scales:{x:{ticks:{color:'#999'},grid:{color:'#2a2a2a'}},y:{ticks:{color:'#999'},grid:{color:'#2a2a2a'}}}});
+  const chartOpts = ()=>({responsive:true,plugins:{legend:{labels:{color:'#191F28',boxWidth:12}}},scales:{x:{ticks:{color:'#8B95A1'},grid:{color:'#E5E8EB'}},y:{ticks:{color:'#8B95A1'},grid:{color:'#E5E8EB'}}}});
 
   if(currentType==='hitter') {
     if(avgChart) avgChart.destroy();
@@ -706,7 +709,7 @@ function renderTrend() {
       {label:'타점',data:yrs.map(y=>getStats(y)?.RBI||0),backgroundColor:'rgba(230,126,34,.8)'},
     ]},options:chartOpts()});
     if(opsChart) opsChart.destroy();
-    opsChart=new Chart(document.getElementById('opsChart'),{type:'line',data:{labels:yrs,datasets:[{label:'OPS',data:yrs.map(y=>getStats(y)?.OPS||null),borderColor:'#3498DB',backgroundColor:'rgba(52,152,219,.1)',fill:true,tension:.4,pointBackgroundColor:'#FFD700',pointRadius:6}]},options:chartOpts()});
+    opsChart=new Chart(document.getElementById('opsChart'),{type:'line',data:{labels:yrs,datasets:[{label:'OPS',data:yrs.map(y=>getStats(y)?.OPS||null),borderColor:'#3498DB',backgroundColor:'rgba(52,152,219,.1)',fill:true,tension:.4,pointBackgroundColor:'#3182F6',pointRadius:6}]},options:chartOpts()});
   } else {
     if(avgChart) avgChart.destroy();
     avgChart=new Chart(document.getElementById('avgChart'),{type:'line',data:{labels:yrs,datasets:[
@@ -720,10 +723,10 @@ function renderTrend() {
       {label:'탈삼진',data:yrs.map(y=>getStats(y)?.SO||0),backgroundColor:'rgba(52,152,219,.6)'},
     ]},options:chartOpts()});
     if(opsChart) opsChart.destroy();
-    opsChart=new Chart(document.getElementById('opsChart'),{type:'line',data:{labels:yrs,datasets:[{label:'이닝',data:yrs.map(y=>{const s=getStats(y);if(!s)return null;return parseFloat(s.IP)||0;}),borderColor:'#9B59B6',backgroundColor:'rgba(155,89,182,.1)',fill:true,tension:.4,pointBackgroundColor:'#FFD700',pointRadius:6}]},options:chartOpts()});
+    opsChart=new Chart(document.getElementById('opsChart'),{type:'line',data:{labels:yrs,datasets:[{label:'이닝',data:yrs.map(y=>{const s=getStats(y);if(!s)return null;return parseFloat(s.IP)||0;}),borderColor:'#9B59B6',backgroundColor:'rgba(155,89,182,.1)',fill:true,tension:.4,pointBackgroundColor:'#3182F6',pointRadius:6}]},options:chartOpts()});
   }
   if(warChart) warChart.destroy();
-  warChart=new Chart(document.getElementById('warChart'),{type:'bar',data:{labels:yrs,datasets:[{label:currentType==='hitter'?'홈런':'탈삼진',data:yrs.map(y=>getStats(y)?.[currentType==='hitter'?'HR':'SO']||0),backgroundColor:'rgba(255,215,0,.7)'}]},options:chartOpts()});
+  warChart=new Chart(document.getElementById('warChart'),{type:'bar',data:{labels:yrs,datasets:[{label:currentType==='hitter'?'홈런':'탈삼진',data:yrs.map(y=>getStats(y)?.[currentType==='hitter'?'HR':'SO']||0),backgroundColor:'rgba(49,130,246,.7)'}]},options:chartOpts()});
 }
 
 // ─ 통산 ─
