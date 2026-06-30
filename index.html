@@ -273,13 +273,21 @@ const TEAMS = [
 const PROXIES = [
   url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
   url => 'https://corsproxy.io/?url=' + encodeURIComponent(url),
+  url => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
   url => 'https://thingproxy.freeboard.io/fetch/' + url,
+  url => 'https://proxy.cors.sh/' + url,
 ];
+async function fetchWithTimeout(url, ms) {
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  try { return await fetch(url, { signal: ctrl.signal }); }
+  finally { clearTimeout(t); }
+}
 async function fetchViaProxy(url) {
   let lastErr;
   for (const build of PROXIES) {
     try {
-      const res = await fetch(build(url));
+      const res = await fetchWithTimeout(build(url), 9000);
       if (!res.ok) throw new Error('status ' + res.status);
       const text = await res.text();
       if (!text || text.length < 200) throw new Error('empty response');
@@ -452,8 +460,15 @@ async function selectTeam(code) {
   autoSelectTop();
   setStatus('loading','예시 데이터 표시 중 · 실시간 데이터 연동 시도 중...');
 
-  // 2) 실시간 조회는 백그라운드로 시도, 성공하면 자동 교체
-  loadRoster(team);
+  // 2) 실시간 조회는 백그라운드로 시도, 성공하면 자동 교체 (실패 시 일정 간격으로 재시도)
+  loadRosterWithRetry(team, 4);
+}
+
+async function loadRosterWithRetry(team, attemptsLeft) {
+  const ok = await loadRoster(team);
+  if(!ok && attemptsLeft > 0 && currentTeam === team) {
+    setTimeout(()=>loadRosterWithRetry(team, attemptsLeft-1), 15000);
+  }
 }
 
 function loadFallback(team) {
@@ -493,7 +508,7 @@ function autoSelectTop() {
 async function loadRoster(team) {
   try {
     const html = await fetchViaProxy(KBO_ROSTER(team.code));
-    if(currentTeam !== team) return; // 그 사이 다른 팀으로 전환된 경우 무시
+    if(currentTeam !== team) return true; // 그 사이 다른 팀으로 전환된 경우 무시
     const dp = new DOMParser();
     const doc = dp.parseFromString(html, 'text/html');
     const rows = doc.querySelectorAll('table tr');
@@ -518,9 +533,13 @@ async function loadRoster(team) {
     ROSTER = live;
     buildSelect();
     autoSelectTop();
-    setStatus('ok','실시간 선수단 연동 완료 · 선수를 선택해 기록을 조회하세요');
+    setStatus('loading','실시간 선수단 연동 완료 · 최신 성적 조회 중...');
+    if(currentPlayer && !currentPlayer.fallback) await fetchLiveData();
+    setStatus('ok',`실시간 데이터 반영 완료 (${new Date().toLocaleTimeString('ko-KR')})`);
+    return true;
   } catch(e) {
-    if(currentTeam === team) setStatus('err','실시간 연동 실패 — 예시 데이터로 표시 중 (구단 재선택 시 재시도)');
+    if(currentTeam === team) setStatus('err','실시간 연동 실패 — 예시 데이터로 표시 중 (잠시 후 자동 재시도)');
+    return false;
   }
 }
 
@@ -698,6 +717,9 @@ function renderPlayerHeader() {
       <div class="p-meta">
         <span class="p-tag">${teamLabel}</span>
         <span class="p-tag">포지션 <b>${p.pos}</b></span>
+        ${p.fallback
+          ? `<span class="p-tag" style="color:var(--err);border-color:var(--err)">⚠ 예시 데이터 (실시간 연동 시도 중)</span>`
+          : `<span class="p-tag" style="color:var(--green);border-color:var(--green)">● 실시간 데이터</span>`}
       </div>
     </div>`;
 }
@@ -940,7 +962,7 @@ function setMode(mode) {
   document.getElementById('mode-'+mode).classList.add('active');
   document.getElementById('playersView').style.display = mode==='players' ? '' : 'none';
   document.getElementById('standingsView').style.display = mode==='standings' ? '' : 'none';
-  if(mode==='standings' && !standingsLoaded) loadStandings();
+  if(mode==='standings' && !standingsLoaded) loadStandingsWithRetry(4);
 }
 
 // ─── KBO 팀 순위 ────────────────────────────────────────────
@@ -954,9 +976,22 @@ function setStandingsStatus(state, text) {
 function findTeamByName(name) {
   return TEAMS.find(t => name.includes(t.name.split(' ')[0]) || t.name.includes(name));
 }
+function renderFallbackStandings() {
+  const body = document.getElementById('standingsBody');
+  body.innerHTML = TEAMS.map((t,i)=>`<tr>
+    <td>${i+1}</td><td>${t.logo} ${t.name}</td>
+    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+  </tr>`).join('');
+  setStandingsStatus('err','⚠ 예시 표시 중 — 실시간 순위 연동 시도 중...');
+}
+async function loadStandingsWithRetry(attemptsLeft) {
+  const ok = await loadStandings();
+  if(!ok && attemptsLeft > 0) setTimeout(()=>loadStandingsWithRetry(attemptsLeft-1), 15000);
+}
 async function loadStandings() {
   setStandingsStatus('loading','순위표 불러오는 중...');
   const body = document.getElementById('standingsBody');
+  if(!standingsLoaded) renderFallbackStandings();
   try {
     const html = await fetchViaProxy(KBO_STANDINGS_URL);
     const dp = new DOMParser();
@@ -985,10 +1020,12 @@ async function loadStandings() {
     });
     body.innerHTML = html2;
     standingsLoaded = true;
-    setStandingsStatus('ok', `업데이트 완료 (${new Date().toLocaleTimeString('ko-KR')})`);
+    setStandingsStatus('ok', `실시간 업데이트 완료 (${new Date().toLocaleTimeString('ko-KR')})`);
+    return true;
   } catch(e) {
-    body.innerHTML = '<tr><td colspan="12" class="empty-state">순위표를 불러오지 못했습니다 — 새로고침 버튼을 눌러 다시 시도해보세요</td></tr>';
-    setStandingsStatus('err','순위표 조회 실패 (프록시/사이트 구조 문제일 수 있음)');
+    if(!standingsLoaded) renderFallbackStandings();
+    setStandingsStatus('err','순위표 실시간 연동 실패 — 예시 표시 중 (잠시 후 자동 재시도, 새로고침으로 즉시 재시도 가능)');
+    return false;
   }
 }
 
