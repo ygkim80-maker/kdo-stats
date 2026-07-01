@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>반품나라 — 반품 도우미</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#f4f4f8;max-width:390px;margin:0 auto;min-height:100vh;position:relative;}
+:root{--primary:#FF4B4B;--primary-light:#fff0f0;--gray:#888;--border:#e8e8e8;}
+
+.status-bar{background:#fff;padding:12px 20px 6px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;}
+.status-time{font-size:15px;font-weight:700;}
+.status-icons{display:flex;gap:6px;align-items:center;font-size:11px;}
+
+.top-nav{background:#fff;padding:10px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.logo{font-size:22px;font-weight:800;color:var(--primary);}
+.logo span{color:#222;}
+.nav-icons{display:flex;gap:14px;font-size:20px;}
+
+.screen{display:none;padding-bottom:80px;}
+.screen.active{display:block;}
+
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#fff;border-top:1px solid var(--border);display:flex;z-index:100;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0 14px;cursor:pointer;gap:3px;color:var(--gray);font-size:10px;}
+.bnav-item.active{color:var(--primary);}
+.bnav-icon{font-size:22px;}
+
+.banner{background:linear-gradient(135deg,#FF4B4B,#ff7043);color:#fff;margin:16px;border-radius:16px;padding:20px;position:relative;overflow:hidden;}
+.banner::after{content:'📦';position:absolute;right:16px;bottom:10px;font-size:56px;opacity:.3;}
+.banner-tag{background:rgba(255,255,255,.25);display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;margin-bottom:8px;}
+.banner h2{font-size:20px;font-weight:800;line-height:1.3;margin-bottom:6px;}
+.banner p{font-size:13px;opacity:.85;}
+.banner-btn{margin-top:14px;background:#fff;color:var(--primary);border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;}
+
+.section{padding:0 16px;margin-top:20px;}
+.section-title{font-size:16px;font-weight:700;color:#222;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.quick-item{background:#fff;border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.quick-icon{font-size:26px;}
+.quick-label{font-size:11px;color:#444;font-weight:600;text-align:center;}
+
+.notice-card{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;}
+.notice-icon{font-size:28px;}
+.notice-body{flex:1;}
+.notice-title{font-size:14px;font-weight:700;color:#222;}
+.notice-sub{font-size:12px;color:var(--gray);margin-top:2px;}
+.notice-badge{background:var(--primary);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+
+.apply-form{padding:16px;}
+.form-card{background:#fff;border-radius:16px;padding:18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.form-card h3{font-size:15px;font-weight:700;color:#222;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.form-row{margin-bottom:14px;}
+.form-label{font-size:12px;color:var(--gray);font-weight:600;margin-bottom:6px;}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;outline:none;transition:.2s;}
+.form-input:focus{border-color:var(--primary);}
+select.form-input{-webkit-appearance:none;}
+.reason-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.reason-btn{border:1.5px solid var(--border);background:#fff;border-radius:10px;padding:10px;font-size:13px;cursor:pointer;transition:.2s;}
+.reason-btn.sel{border-color:var(--primary);background:var(--primary-light);color:var(--primary);font-weight:700;}
+.photo-area{border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;color:var(--gray);}
+.photo-area .icon{font-size:36px;margin-bottom:6px;}
+.photo-area p{font-size:13px;}
+.submit-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;}
+
+.returns-list{padding:16px;}
+.return-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.return-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.return-brand{font-size:13px;color:var(--gray);font-weight:600;}
+.status-badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.status-badge.done{background:#e8f5e9;color:#2e7d32;}
+.status-badge.progress{background:#fff3e0;color:#e65100;}
+.status-badge.wait{background:#e3f2fd;color:#1565c0;}
+.return-product{font-size:15px;font-weight:700;color:#222;margin-bottom:4px;}
+.return-price{font-size:14px;color:var(--primary);font-weight:700;}
+.return-meta{font-size:12px;color:var(--gray);margin-top:4px;}
+.progress-bar{background:#f0f0f0;border-radius:10px;height:6px;margin-top:12px;}
+.progress-fill{height:6px;border-radius:10px;background:var(--primary);}
+.progress-labels{display:flex;justify-content:space-between;margin-top:6px;}
+.progress-labels span{font-size:10px;color:var(--gray);}
+.timeline{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+.tl-item{display:flex;gap:10px;margin-bottom:10px;}
+.tl-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.tl-dot.done{background:#2e7d32;}
+.tl-dot.now{background:var(--primary);}
+.tl-dot.wait{background:#ddd;}
+.tl-text{font-size:12px;color:#444;line-height:1.5;}
+.tl-time{font-size:11px;color:var(--gray);}
+
+.comm-hot{background:linear-gradient(135deg,#ff6b35,#ff4b4b);margin:16px;border-radius:14px;padding:14px 16px;color:#fff;cursor:pointer;}
+.comm-hot-tag{font-size:11px;background:rgba(255,255,255,.25);padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:8px;}
+.comm-hot-title{font-size:14px;font-weight:700;}
+.comm-hot-meta{font-size:11px;opacity:.8;margin-top:4px;}
+
+.rank-card{background:#fff;margin:0 16px 16px;border-radius:14px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.rank-card h4{font-size:13px;font-weight:700;color:#222;margin-bottom:10px;}
+.rank-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);}
+.rank-row:last-child{border-bottom:none;}
+.rank-num{width:20px;font-size:13px;font-weight:800;color:var(--primary);}
+.rank-brand{flex:1;font-size:13px;font-weight:600;}
+.rank-bar-wrap{width:80px;background:#f0f0f0;border-radius:10px;height:6px;}
+.rank-bar{height:6px;border-radius:10px;background:var(--primary);}
+.rank-day{font-size:11px;color:var(--gray);width:30px;text-align:right;}
+
+.cat-tabs{display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:13px;cursor:pointer;color:#444;}
+.cat-tab.active{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:700;}
+
+.post-card{background:#fff;margin:0 16px 10px;border-radius:14px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;}
+.post-cat{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-bottom:6px;}
+.post-cat.불만{background:#ffebee;color:#c62828;}
+.post-cat.꿀팁{background:#e8f5e9;color:#2e7d32;}
+.post-cat.후기{background:#e3f2fd;color:#1565c0;}
+.post-cat.질문{background:#fff3e0;color:#e65100;}
+.post-title{font-size:14px;font-weight:700;color:#222;line-height:1.4;margin-bottom:6px;}
+.post-preview{font-size:12px;color:var(--gray);line-height:1.5;margin-bottom:8px;}
+.post-meta{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--gray);}
+.post-meta .likes{color:var(--primary);}
+
+.fab{position:fixed;bottom:90px;right:calc(50% - 195px + 16px);background:var(--primary);color:#fff;width:50px;height:50px;border-radius:25px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 14px rgba(255,75,75,.4);cursor:pointer;z-index:99;}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;}
+.overlay.show{display:flex;}
+.sheet{background:#fff;width:100%;max-width:390px;margin:0 auto;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto;}
+.sheet-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 16px;}
+.sheet h3{font-size:18px;font-weight:800;margin-bottom:16px;}
+.sheet-close{float:right;font-size:24px;cursor:pointer;color:var(--gray);}
+.comment{display:flex;gap:10px;margin-bottom:14px;}
+.avatar{width:36px;height:36px;border-radius:18px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.comment-body .name{font-size:13px;font-weight:700;color:#222;}
+.comment-body .text{font-size:13px;color:#444;line-height:1.5;margin-top:2px;}
+.comment-body .time{font-size:11px;color:var(--gray);margin-top:2px;}
+.bot-reply{background:#fff8f0;border-left:3px solid #ff9800;padding:12px;border-radius:0 10px 10px 0;margin-bottom:14px;font-size:12px;line-height:1.6;color:#444;}
+
+.write-input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:14px;outline:none;margin-bottom:10px;}
+.write-input:focus{border-color:var(--primary);}
+textarea.write-input{height:100px;resize:none;}
+.chip-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:13px;cursor:pointer;background:#fff;}
+.chip.sel{border-color:var(--primary);background:var(--primary-light);color:var(--primary);font-weight:700;}
+
+.my-header{background:linear-gradient(135deg,#FF4B4B,#ff7043);padding:30px 20px 24px;color:#fff;}
+.my-avatar{width:64px;height:64px;background:rgba(255,255,255,.3);border-radius:32px;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:12px;}
+.my-name{font-size:20px;font-weight:800;}
+.my-sub{font-size:13px;opacity:.8;margin-top:4px;}
+.my-stats{display:flex;gap:0;margin-top:16px;background:rgba(255,255,255,.15);border-radius:12px;}
+.my-stat{flex:1;text-align:center;padding:12px 0;}
+.my-stat+.my-stat{border-left:1px solid rgba(255,255,255,.2);}
+.my-stat .val{font-size:20px;font-weight:800;}
+.my-stat .lbl{font-size:11px;opacity:.8;margin-top:2px;}
+.menu-group{background:#fff;margin:12px 16px;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.menu-item{display:flex;align-items:center;gap:12px;padding:16px;cursor:pointer;border-bottom:1px solid var(--border);}
+.menu-item:last-child{border-bottom:none;}
+.menu-icon{font-size:22px;}
+.menu-text{flex:1;font-size:14px;font-weight:600;color:#222;}
+.menu-arrow{color:var(--gray);font-size:18px;}
+</style>
+</head>
+<body>
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+</div>
+<div class="top-nav">
+  <div class="logo">반품<span>나라</span></div>
+  <div class="nav-icons"><span>🔔</span><span>🔍</span></div>
+</div>
+
+<div class="screen active" id="s-home">
+  <div class="banner">
+    <div class="banner-tag">✨ 반품 걱정 끝</div>
+    <h2>반품, 이제<br>반품나라에 맡기세요</h2>
+    <p>신청부터 환불까지 실시간 추적</p>
+    <button class="banner-btn" onclick="goScreen('s-apply')">반품 신청하기 →</button>
+  </div>
+  <div class="section">
+    <div class="section-title">⚡ 빠른 메뉴</div>
+    <div class="quick-grid">
+      <div class="quick-item" onclick="goScreen('s-apply')"><div class="quick-icon">📦</div><div class="quick-label">반품 신청</div></div>
+      <div class="quick-item" onclick="goScreen('s-my-returns')"><div class="quick-icon">🔍</div><div class="quick-label">반품 조회</div></div>
+      <div class="quick-item" onclick="goScreen('s-comm')"><div class="quick-icon">💬</div><div class="quick-label">커뮤니티</div></div>
+      <div class="quick-item"><div class="quick-icon">📸</div><div class="quick-label">사진 가이드</div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">🔔 내 반품 현황</div>
+    <div class="notice-card" onclick="goScreen('s-my-returns')">
+      <div class="notice-icon">🟠</div>
+      <div class="notice-body"><div class="notice-title">무신사 — 나이키 에어맥스</div><div class="notice-sub">수거 기사 배정 완료 · 내일 방문 예정</div></div>
+      <span class="notice-badge">진행중</span>
+    </div>
+    <div class="notice-card" onclick="goScreen('s-my-returns')">
+      <div class="notice-icon">✅</div>
+      <div class="notice-body"><div class="notice-title">올리브영 — 선크림 세트</div><div class="notice-sub">환불 완료 · 128,000원</div></div>
+      <span class="notice-badge" style="background:#2e7d32">완료</span>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">🔥 커뮤니티 HOT</div>
+    <div class="post-card" onclick="openPost()">
+      <span class="post-cat 불만">🔥 불만</span>
+      <div class="post-title">무신사 반품 8일째 아무 연락 없음 ㅠㅠ</div>
+      <div class="post-meta"><span>👍 247</span><span>💬 83</span><span>2시간 전</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="s-apply">
+  <div class="apply-form">
+    <div class="form-card">
+      <h3>📦 반품 정보 입력</h3>
+      <div class="form-row"><div class="form-label">쇼핑몰</div>
+        <select class="form-input"><option>쇼핑몰 선택</option><option>무신사</option><option>올리브영</option><option>에이블리</option><option>지그재그</option><option>29CM</option><option>쿠팡</option></select>
+      </div>
+      <div class="form-row"><div class="form-label">주문번호</div><input class="form-input" placeholder="주문번호를 입력하세요"/></div>
+      <div class="form-row"><div class="form-label">상품명</div><input class="form-input" placeholder="반품할 상품명"/></div>
+      <div class="form-row"><div class="form-label">반품 사유</div>
+        <div class="reason-grid">
+          <button class="reason-btn sel">단순 변심</button>
+          <button class="reason-btn" onclick="selectReason(this)">사이즈 불량</button>
+          <button class="reason-btn" onclick="selectReason(this)">상품 불량</button>
+          <button class="reason-btn" onclick="selectReason(this)">오배송</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-card"><h3>📸 상품 사진</h3>
+      <div class="photo-area"><div class="icon">📷</div><p>상품 + 박스 사진을 올려주세요<br><small style="color:#bbb">꿀팁: 택이 보이게 찍으면 승인 빨라요!</small></p></div>
+    </div>
+    <div class="form-card"><h3>🚚 수거 정보</h3>
+      <div class="form-row"><div class="form-label">수거 주소</div><input class="form-input" value="서울시 강남구 테헤란로 123"/></div>
+      <div class="form-row"><div class="form-label">희망 수거일</div><input class="form-input" type="date"/></div>
+    </div>
+    <button class="submit-btn" onclick="submitReturn()">반품 신청하기 🚀</button>
+  </div>
+</div>
+
+<div class="screen" id="s-my-returns">
+  <div class="returns-list">
+    <div class="return-card">
+      <div class="return-header">
+        <div><div class="return-brand">무신사</div><div class="return-product">나이키 에어맥스 270</div><div class="return-price">178,000원 환불 예정</div><div class="return-meta">신청일 2026.06.10 · 단순 변심</div></div>
+        <span class="status-badge progress">수거중</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
+      <div class="progress-labels"><span>신청</span><span>수거</span><span>검수</span><span>환불</span></div>
+      <div class="timeline">
+        <div class="tl-item"><div class="tl-dot done"></div><div><div class="tl-text">반품 신청 완료</div><div class="tl-time">06.10 14:23</div></div></div>
+        <div class="tl-item"><div class="tl-dot now"></div><div><div class="tl-text">수거 기사 배정 완료 — 내일(6/17) 방문 예정</div><div class="tl-time">06.15 09:10</div></div></div>
+        <div class="tl-item"><div class="tl-dot wait"></div><div><div class="tl-text">상품 검수 대기</div></div></div>
+        <div class="tl-item"><div class="tl-dot wait"></div><div><div class="tl-text">환불 처리 대기</div></div></div>
+      </div>
+    </div>
+    <div class="return-card">
+      <div class="return-header">
+        <div><div class="return-brand">올리브영</div><div class="return-product">라운드랩 선크림 세트</div><div class="return-price">128,000원 환불 완료 ✅</div><div class="return-meta">신청일 2026.06.01 · 상품 불량</div></div>
+        <span class="status-badge done">완료</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:100%;background:#2e7d32"></div></div>
+      <div class="progress-labels"><span>신청</span><span>수거</span><span>검수</span><span>환불</span></div>
+    </div>
+    <div class="return-card">
+      <div class="return-header">
+        <div><div class="return-brand">에이블리</div><div class="return-product">린넨 와이드 팬츠 M</div><div class="return-price">38,000원 환불 예정</div><div class="return-meta">신청일 2026.06.14 · 사이즈 불량</div></div>
+        <span class="status-badge wait">신청완료</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:15%"></div></div>
+      <div class="progress-labels"><span>신청</span><span>수거</span><span>검수</span><span>환불</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="s-comm">
+  <div class="comm-hot" onclick="openPost()">
+    <div class="comm-hot-tag">🔥 지금 핫한 글</div>
+    <div class="comm-hot-title">무신사 반품 8일째 아무 연락 없음 ㅠㅠ 이거 정상인가요?</div>
+    <div class="comm-hot-meta">👍 247 · 💬 83 · 2시간 전</div>
+  </div>
+  <div class="rank-card">
+    <h4>🏆 화주별 반품 처리 속도 랭킹</h4>
+    <div class="rank-row"><div class="rank-num">1</div><div class="rank-brand">올리브영</div><div class="rank-bar-wrap"><div class="rank-bar" style="width:90%"></div></div><div class="rank-day">2.1일</div></div>
+    <div class="rank-row"><div class="rank-num">2</div><div class="rank-brand">에이블리</div><div class="rank-bar-wrap"><div class="rank-bar" style="width:72%"></div></div><div class="rank-day">3.4일</div></div>
+    <div class="rank-row"><div class="rank-num">3</div><div class="rank-brand">지그재그</div><div class="rank-bar-wrap"><div class="rank-bar" style="width:60%"></div></div><div class="rank-day">4.1일</div></div>
+    <div class="rank-row"><div class="rank-num" style="color:#888">4</div><div class="rank-brand" style="color:#888">무신사</div><div class="rank-bar-wrap"><div class="rank-bar" style="width:30%;background:#ffb300"></div></div><div class="rank-day" style="color:#e65100">8.2일</div></div>
+  </div>
+  <div class="cat-tabs">
+    <div class="cat-tab active" onclick="selectCat(this)">전체</div>
+    <div class="cat-tab" onclick="selectCat(this)">🔥 불만</div>
+    <div class="cat-tab" onclick="selectCat(this)">💡 꿀팁</div>
+    <div class="cat-tab" onclick="selectCat(this)">📋 후기</div>
+    <div class="cat-tab" onclick="selectCat(this)">❓ 질문</div>
+  </div>
+  <div class="post-card" onclick="openPost()"><span class="post-cat 불만">🔥 불만</span><div class="post-title">무신사 반품 8일째 아무 연락 없음 ㅠㅠ</div><div class="post-preview">분명히 반품 신청했는데 수거도 안 오고 앱에는 처리중만 뜸. CS도 연결이 안 됨...</div><div class="post-meta"><span class="likes">👍 247</span><span>💬 83</span><span>😤 무신사</span><span>2시간 전</span></div></div>
+  <div class="post-card"><span class="post-cat 꿀팁">💡 꿀팁</span><div class="post-title">올리브영 반품 사진 이렇게 찍으면 당일 승인납니다 🙌</div><div class="post-preview">제품 정면 + 택 + 박스 3장 세트로 올리면 검수팀이 바로 통과시켜줌.</div><div class="post-meta"><span class="likes">👍 189</span><span>💬 34</span><span>✅ 올리브영</span><span>5시간 전</span></div></div>
+  <div class="post-card"><span class="post-cat 후기">📋 후기</span><div class="post-title">에이블리 반품 신청 후 3일만에 환불 완료! 역시 빠르네요</div><div class="post-preview">반품나라 통해서 신청했는데 진짜 빠르게 처리됐어요.</div><div class="post-meta"><span class="likes">👍 92</span><span>💬 17</span><span>✅ 에이블리</span><span>어제</span></div></div>
+  <div class="post-card"><span class="post-cat 질문">❓ 질문</span><div class="post-title">지그재그 반품인데 수거 기사가 안 오면 어떻게 하나요?</div><div class="post-preview">어제 수거 오기로 했는데 노쇼... 재신청하면 처음부터 다시 시작인가요?</div><div class="post-meta"><span class="likes">👍 28</span><span>💬 11</span><span>❓ 지그재그</span><span>3시간 전</span></div></div>
+  <div class="fab" onclick="openWrite()">✏️</div>
+</div>
+
+<div class="screen" id="s-my">
+  <div class="my-header">
+    <div class="my-avatar">😊</div>
+    <div class="my-name">김반품님</div>
+    <div class="my-sub">반품 마스터 · 가입 2025.03</div>
+    <div class="my-stats">
+      <div class="my-stat"><div class="val">12</div><div class="lbl">총 반품</div></div>
+      <div class="my-stat"><div class="val">2</div><div class="lbl">진행중</div></div>
+      <div class="my-stat"><div class="val">344,000</div><div class="lbl">총 환불액(원)</div></div>
+    </div>
+  </div>
+  <div class="menu-group">
+    <div class="menu-item"><div class="menu-icon">📦</div><div class="menu-text">반품 내역</div><div class="menu-arrow">›</div></div>
+    <div class="menu-item"><div class="menu-icon">💬</div><div class="menu-text">내 게시글</div><div class="menu-arrow">›</div></div>
+    <div class="menu-item"><div class="menu-icon">⭐</div><div class="menu-text">찜한 꿀팁</div><div class="menu-arrow">›</div></div>
+  </div>
+  <div class="menu-group">
+    <div class="menu-item"><div class="menu-icon">🔔</div><div class="menu-text">알림 설정</div><div class="menu-arrow">›</div></div>
+    <div class="menu-item"><div class="menu-icon">🏠</div><div class="menu-text">주소 관리</div><div class="menu-arrow">›</div></div>
+    <div class="menu-item"><div class="menu-icon">💳</div><div class="menu-text">환불 계좌</div><div class="menu-arrow">›</div></div>
+  </div>
+  <div class="menu-group">
+    <div class="menu-item"><div class="menu-icon">💬</div><div class="menu-text">고객센터</div><div class="menu-arrow">›</div></div>
+    <div class="menu-item"><div class="menu-icon">📄</div><div class="menu-text">이용약관</div><div class="menu-arrow">›</div></div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <div class="bnav-item active" id="nav-home" onclick="goScreen('s-home')"><div class="bnav-icon">🏠</div>홈</div>
+  <div class="bnav-item" id="nav-apply" onclick="goScreen('s-apply')"><div class="bnav-icon">📦</div>반품신청</div>
+  <div class="bnav-item" id="nav-returns" onclick="goScreen('s-my-returns')"><div class="bnav-icon">🔍</div>내반품</div>
+  <div class="bnav-item" id="nav-comm" onclick="goScreen('s-comm')"><div class="bnav-icon">💬</div>커뮤니티</div>
+  <div class="bnav-item" id="nav-my" onclick="goScreen('s-my')"><div class="bnav-icon">👤</div>MY</div>
+</div>
+
+<div class="overlay" id="postModal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div><span class="sheet-close" onclick="closeModal('postModal')">✕</span></div>
+    <span class="post-cat 불만" style="font-size:12px">🔥 불만</span>
+    <h3 style="margin-top:8px">무신사 반품 8일째 아무 연락 없음 ㅠㅠ</h3>
+    <p style="font-size:13px;color:#444;line-height:1.7;margin-bottom:14px">분명히 반품 신청했는데 수거도 안 오고 앱에는 처리중만 뜸. CS 전화는 30분째 대기 중이고 채팅은 봇만 나옴.<br><br>이게 정상인가요? 이렇게 오래 걸리면 환불도 안 되는 건지 너무 불안해요 😭</p>
+    <div class="bot-reply">🤖 <strong>반품나라 운영봇</strong><br>무신사 반품 지연 접수됐습니다! 현재 무신사 수거 지연이 평균 7~9일로 확인되고 있어요. 반품나라 앱에서 '반품 신청' 탭 → 해당 주문 → 「지연 신고」 버튼을 누르시면 무신사에 자동 압박 메시지가 발송됩니다 💪</div>
+    <div class="comment"><div class="avatar">😤</div><div class="comment-body"><div class="name">반품러12</div><div class="text">저도 무신사 9일 걸렸어요. 그냥 카드사에 이의제기하니까 당일 처리됨 ㅋㅋ</div><div class="time">1시간 전 · 👍 47</div></div></div>
+    <div class="comment"><div class="avatar">🛒</div><div class="comment-body"><div class="name">쇼핑왕언니</div><div class="text">무신사 CS 카카오 채널로 연락하면 더 빠릅니다! 전화보다 훨씬 빠르게 답해줘요</div><div class="time">45분 전 · 👍 31</div></div></div>
+  </div>
+</div>
+
+<div class="overlay" id="writeModal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="margin:0">글 쓰기</h3><span class="sheet-close" onclick="closeModal('writeModal')">✕</span></div>
+    <div class="form-label" style="margin-bottom:8px">카테고리</div>
+    <div class="chip-group"><div class="chip sel">🔥 불만</div><div class="chip" onclick="selChip(this)">💡 꿀팁</div><div class="chip" onclick="selChip(this)">📋 후기</div><div class="chip" onclick="selChip(this)">❓ 질문</div></div>
+    <div class="form-label" style="margin-bottom:8px">쇼핑몰</div>
+    <div class="chip-group"><div class="chip sel">무신사</div><div class="chip" onclick="selChip(this)">올리브영</div><div class="chip" onclick="selChip(this)">에이블리</div><div class="chip" onclick="selChip(this)">기타</div></div>
+    <input class="write-input" placeholder="제목을 입력하세요"/>
+    <textarea class="write-input" placeholder="내용을 입력하세요"></textarea>
+    <button class="submit-btn" onclick="submitPost()">게시하기 🚀</button>
+  </div>
+</div>
+
+<script>
+const screenMap={'s-home':'nav-home','s-apply':'nav-apply','s-my-returns':'nav-returns','s-comm':'nav-comm','s-my':'nav-my'};
+function goScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));const nav=screenMap[id];if(nav)document.getElementById(nav).classList.add('active');window.scrollTo(0,0);}
+function openPost(){document.getElementById('postModal').classList.add('show');}
+function openWrite(){document.getElementById('writeModal').classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function selectReason(el){document.querySelectorAll('.reason-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');}
+function selectCat(el){document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+function selChip(el){el.closest('.chip-group').querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function submitReturn(){alert('✅ 반품이 신청됐습니다!\n수거 기사가 24시간 내 배정됩니다.');goScreen('s-my-returns');}
+function submitPost(){alert('✅ 게시글이 등록됐습니다!');closeModal('writeModal');}
+document.querySelectorAll('.overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
+</script>
+</body>
+</html>
