@@ -91,18 +91,24 @@ async function scrapeTeamStats(page, url, parseRow, label) {
   const results = {};
   for (const code of TEAM_CODES) {
     try {
-      // 매 팀마다 새로 페이지 로드 (ASP.NET postback 이후 DOM 무효화 방지)
+      // 매 팀마다 새로 페이지 로드 후 ASP.NET postback 대기
       await page.goto(url, { waitUntil: 'networkidle', timeout: 25000 });
       await page.waitForSelector(TEAM_SELECT, { timeout: 8000 });
-      await page.selectOption(TEAM_SELECT, code);
-      await page.waitForLoadState('networkidle', { timeout: 15000 });
+
+      // selectOption → ASP.NET __doPostBack 트리거 → 페이지 재로드
+      // Promise.all로 navigation과 selectOption을 동시에 시작해야 race condition 방지
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: 'networkidle', timeout: 20000 }).catch(() => {}),
+        page.selectOption(TEAM_SELECT, code),
+      ]);
+      await sleep(500); // 렌더링 안정화
 
       const html = await page.content();
       const rows = tableRows(html).filter(r => r.length >= 5 && /^\d+$/.test(r[0]));
       const players = rows.map(parseRow).filter(Boolean);
       results[code] = players;
       console.log(`${label} ${code}(${TEAM_MAP[code]}): ${players.length}명`);
-      await sleep(300);
+      if (players.length > 0) console.log(`  샘플: ${players[0].name}`);
     } catch (e) {
       console.log(`${label} ${code} 오류: ${e.message.split('\n')[0]}`);
       results[code] = [];
