@@ -454,14 +454,45 @@ async function selectTeam(code) {
   applyTeamTheme(team);
   currentPlayer = null;
 
-  // 1) 예시 데이터로 즉시 표시 (선수 선택 없이 바로 성적순 리더 노출)
-  loadFallback(team);
-  buildSelect();
-  autoSelectTop();
-  setStatus('loading','예시 데이터 표시 중 · 실시간 데이터 연동 시도 중...');
+  // 1) GH Actions가 수집해둔 JSON 먼저 시도 (same-origin, CORS 불필요)
+  const hadJson = await loadJsonPlayers(team);
+  if (!hadJson) {
+    // JSON 없으면 예시 데이터로 즉시 표시 후 실시간 스크래핑 백그라운드 시도
+    loadFallback(team);
+    buildSelect();
+    autoSelectTop();
+    setStatus('loading','예시 데이터 표시 중 · 실시간 연동 시도 중...');
+    loadRosterWithRetry(team, 4);
+  }
+}
 
-  // 2) 실시간 조회는 백그라운드로 시도, 성공하면 자동 교체 (실패 시 일정 간격으로 재시도)
-  loadRosterWithRetry(team, 4);
+// GitHub Actions가 서버에서 수집해 저장한 선수 성적 JSON 로드 (same-origin, CORS 불필요)
+async function loadJsonPlayers(team) {
+  try {
+    const res = await fetchWithTimeout(`./data/players-${team.code}.json?t=${Date.now()}`, 6000);
+    if (!res.ok) throw new Error('status ' + res.status);
+    const data = await res.json();
+    if (!data.hitters?.length && !data.pitchers?.length) throw new Error('empty');
+
+    ROSTER = { hitter: [], pitcher: [] };
+    const yr = String(data.year || new Date().getFullYear());
+    data.hitters.forEach((p, i) => {
+      const id = 'json-h-' + team.code + '-' + i;
+      ROSTER.hitter.push({ id, name: p.name, pos: p.pos || '타자', live: true });
+      CAREER_CACHE[id] = { hitter: { [yr]: deriveHitterRaw(p.stats) } };
+    });
+    data.pitchers.forEach((p, i) => {
+      const id = 'json-p-' + team.code + '-' + i;
+      ROSTER.pitcher.push({ id, name: p.name, pos: p.pos || '투수', live: true });
+      CAREER_CACHE[id] = { pitcher: { [yr]: { ...p.stats, QS: 0, WAR: null } } };
+    });
+
+    buildSelect();
+    autoSelectTop();
+    const when = data.updatedAt ? new Date(data.updatedAt).toLocaleString('ko-KR') : '-';
+    setStatus('ok', `${yr}시즌 실제 성적 · ${when} 기준 (3시간마다 자동 갱신)`);
+    return true;
+  } catch(e) { return false; }
 }
 
 async function loadRosterWithRetry(team, attemptsLeft) {
@@ -719,7 +750,7 @@ function renderPlayerHeader() {
         <span class="p-tag">포지션 <b>${p.pos}</b></span>
         ${p.fallback
           ? `<span class="p-tag" style="color:var(--err);border-color:var(--err)">⚠ 예시 데이터 (실시간 연동 시도 중)</span>`
-          : `<span class="p-tag" style="color:var(--green);border-color:var(--green)">● 실시간 데이터</span>`}
+          : `<span class="p-tag" style="color:var(--green);border-color:var(--green)">● ${p.live ? new Date().getFullYear()+'시즌 실제 성적' : '실시간 데이터'}</span>`}
       </div>
     </div>`;
 }

@@ -16,15 +16,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Run scraper
+      - name: Scrape standings
         run: node scripts/scrape-standings.mjs
+      - name: Scrape player stats
+        run: node scripts/scrape-players.mjs
       - name: Commit updated data
         run: |
           git config user.name "kbo-stats-bot"
           git config user.email "actions@users.noreply.github.com"
-          if ! git diff --quiet -- data/standings.json; then
-            git add data/standings.json
-            git commit -m "chore: update KBO standings data"
+          git add data/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update KBO data ($(date -u '+%Y-%m-%d %H:%M UTC'))"
             git push
           else
             echo "no changes"
