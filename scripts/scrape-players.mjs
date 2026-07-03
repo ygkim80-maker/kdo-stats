@@ -1,4 +1,4 @@
-// KBO 선수 성적 스크래퍼 v7 — Playwright으로 KBO 홈에서 실제 URL 탐색 후 데이터 수집
+// KBO 선수 성적 스크래퍼 v7b — TeamRank 페이지에서 nav 링크 추출 후 Playwright로 탐색
 import { writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
@@ -11,21 +11,20 @@ const TEAM_MAP = {
 };
 const TEAM_CODES = Object.keys(TEAM_MAP);
 
-// 사이트에서 실제로 쓰는 팀명 → 코드
-const SITE_TEAM_TO_CODE = {
-  'KIA':'HT', '기아':'HT',
-  '두산':'OB',
-  '삼성':'SS',
-  'LG':'LG',
-  '한화':'HH',
-  '롯데':'LT',
-  'KT':'KT',
-  'SSG':'SK',
-  'NC':'NC',
-  '키움':'WO',
-};
-
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function get(url) {
+  const r = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,*/*;q=0.8',
+      'Accept-Language': 'ko-KR,ko;q=0.9',
+    },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.text();
+}
 
 function stripTags(s) {
   return (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim();
@@ -45,102 +44,104 @@ function tableRows(html) {
   return rows;
 }
 
-async function findPlayerStatsUrls(browser) {
+// TeamRank.aspx HTML에서 모든 링크를 추출해 player stats URL 후보 탐색
+async function discoverPlayerUrls() {
+  console.log('TeamRank 페이지에서 링크 탐색 중...');
+  const html = await get(`${BASE}/Record/TeamRank/TeamRank.aspx`);
+
+  // 모든 href 값 추출
+  const hrefRe = /href="([^"]+)"/gi;
+  const hrefs = new Set();
+  let m;
+  while ((m = hrefRe.exec(html))) {
+    const h = m[1];
+    if (h.startsWith('/') || h.startsWith(BASE)) hrefs.add(h);
+  }
+
+  const allLinks = [...hrefs].map(h => h.startsWith('/') ? BASE + h : h);
+  console.log(`=== TeamRank 페이지 .aspx 링크 전체 (${allLinks.filter(l=>l.includes('.aspx')).length}개) ===`);
+  allLinks.filter(l => l.includes('.aspx')).forEach(l => console.log('  ' + l));
+
+  // JS 파일에서 player stats URL 탐색
+  const jsRe = /src="([^"]*\.js[^"]*)"/gi;
+  const jsFiles = [];
+  while ((m = jsRe.exec(html))) {
+    const s = m[1];
+    jsFiles.push(s.startsWith('/') ? BASE + s : s);
+  }
+  console.log(`\nJS 파일 수: ${jsFiles.length}`);
+
+  // player/hitter 관련 링크 필터
+  const playerLinks = allLinks.filter(l =>
+    /hitter|pitcher|player|record.*player|player.*record/i.test(l)
+  );
+  console.log(`\n선수/기록 관련 링크: ${playerLinks.length}개`);
+  playerLinks.forEach(l => console.log('  ' + l));
+
+  // 전체 HTML에서 aspx 경로 패턴 검색 (href 이외)
+  const aspxRe = /\/[A-Za-z\/]+\.aspx/g;
+  const aspxPaths = new Set();
+  while ((m = aspxRe.exec(html))) {
+    if (m[0].match(/[Hh]itter|[Pp]itcher|[Pp]layer/)) aspxPaths.add(m[0]);
+  }
+  console.log('\nHTML 내 player/hitter/pitcher .aspx 경로:');
+  aspxPaths.forEach(p => console.log('  ' + p));
+
+  return playerLinks;
+}
+
+// Playwright로 URL 테스트 + API 인터셉트
+async function testWithPlaywright(browser, urls) {
   const page = await browser.newPage();
   const apiCalls = [];
 
-  // 네트워크 요청 가로채기
-  page.on('request', req => {
-    const url = req.url();
-    if (req.resourceType() !== 'document' && req.resourceType() !== 'image'
-        && req.resourceType() !== 'stylesheet' && req.resourceType() !== 'font'
-        && !url.includes('google') && !url.includes('analytics')) {
-      apiCalls.push({ url, method: req.method(), type: req.resourceType() });
-    }
-  });
-
-  try {
-    console.log('KBO 홈페이지 탐색 중...');
-    await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 20000 });
-
-    // 네비게이션 메뉴에서 기록/선수 관련 링크 찾기
-    const navLinks = await page.$$eval('a', as =>
-      as.map(a => ({ href: a.href, text: a.textContent.trim() }))
-        .filter(l => l.href && l.href.includes('koreabaseball.com') && l.text.length > 0)
-    );
-
-    const statsLinks = navLinks.filter(l =>
-      l.text.match(/기록|선수|타자|투수|스탯|Record|Player|Hitter|Pitcher/i) ||
-      l.href.match(/Record|Player|Hitter|Pitcher|Stats/i)
-    );
-    console.log('=== 기록/선수 관련 링크 ===');
-    statsLinks.slice(0, 30).forEach(l => console.log(`  ${l.text}: ${l.href}`));
-
-    // 기록 페이지로 직접 이동 시도
-    const recordPage = statsLinks.find(l => l.href.includes('/Record'));
-    if (recordPage) {
-      console.log(`\n기록 페이지로 이동: ${recordPage.href}`);
-      await page.goto(recordPage.href, { waitUntil: 'domcontentloaded', timeout: 20000 });
-      const subLinks = await page.$$eval('a', as =>
-        as.map(a => ({ href: a.href, text: a.textContent.trim() }))
-          .filter(l => l.href && l.href.includes('koreabaseball.com')
-                    && (l.href.includes('Hitter') || l.href.includes('Pitcher') || l.href.includes('Player')))
-      );
-      console.log('=== 선수 기록 하위 링크 ===');
-      subLinks.slice(0, 20).forEach(l => console.log(`  ${l.text}: ${l.href}`));
-    }
-
-    // 전체 링크 중 .aspx 경로 추출
-    const allLinks = await page.$$eval('a', as => as.map(a => a.href));
-    const aspxLinks = [...new Set(allLinks.filter(h => h.includes('.aspx') && h.includes('koreabaseball.com')))];
-    console.log('\n=== 현재 페이지의 .aspx 링크 (최대 30개) ===');
-    aspxLinks.slice(0, 30).forEach(l => console.log('  ' + l));
-
-    console.log('\n=== API/XHR 호출 감지 ===');
-    apiCalls.slice(0, 20).forEach(c => console.log(`  [${c.type}] ${c.method} ${c.url.substring(0, 100)}`));
-
-    return statsLinks;
-  } finally {
-    await page.close();
-  }
-}
-
-async function scrapeWithPlaywright(page, url) {
-  const apiCalls = [];
   page.on('response', async res => {
     const u = res.url();
     const ct = res.headers()['content-type'] || '';
-    if (ct.includes('json') && u.includes('koreabaseball')) {
+    if ((ct.includes('json') || u.includes('.asmx') || u.includes('ashx') || u.includes('api'))
+        && u.includes('koreabaseball')) {
       try {
-        const body = await res.text();
-        if (body.length > 100) apiCalls.push({ url: u, body: body.substring(0, 500) });
+        const body = await res.text().catch(() => '');
+        if (body.length > 50) apiCalls.push({ url: u, snippet: body.substring(0, 200) });
       } catch { /* ignore */ }
     }
   });
 
-  await page.goto(url, { waitUntil: 'networkidle', timeout: 25000 });
-
-  const title = await page.title();
-  const html = await page.content();
-  const isError = title.includes('에러') || html.includes('errorcon');
-
-  if (apiCalls.length > 0) {
-    console.log(`  JSON API 응답 감지 (${apiCalls.length}개):`);
-    apiCalls.slice(0, 3).forEach(c => console.log(`    ${c.url}\n      ${c.body.substring(0, 200)}`));
+  for (const url of urls) {
+    try {
+      await page.goto(url, { waitUntil: 'networkidle', timeout: 20000 });
+      const title = await page.title();
+      const html = await page.content();
+      const rows = tableRows(html);
+      const dataRows = rows.filter(r => r.length >= 5 && /^\d+$/.test(r[0]));
+      console.log(`\n${url}`);
+      console.log(`  제목: ${title}, 행수: ${dataRows.length}, API감지: ${apiCalls.length}개`);
+      if (dataRows.length > 0) {
+        console.log('  샘플행:', JSON.stringify(dataRows[0]));
+      }
+      if (apiCalls.length > 0) {
+        console.log('  API 호출:');
+        apiCalls.forEach(c => console.log(`    ${c.url}\n      ${c.snippet}`));
+        apiCalls.length = 0;
+      }
+    } catch (e) {
+      console.log(`  오류: ${e.message}`);
+    }
   }
-
-  if (!isError) {
-    console.log(`  성공: ${title} (len=${html.length})`);
-    return html;
-  }
-  console.log(`  에러 페이지: ${title}`);
-  return null;
+  await page.close();
 }
 
 async function main() {
   if (!existsSync('data')) await mkdir('data');
-  const { chromium } = await import('playwright');
 
+  // 단계 1: 링크 탐색
+  const discovered = await discoverPlayerUrls().catch(e => {
+    console.log('링크 탐색 실패:', e.message);
+    return [];
+  });
+
+  // 단계 2: Playwright로 추가 URL 탐색
+  const { chromium } = await import('playwright');
   const browser = await chromium.launch({
     executablePath: '/usr/bin/google-chrome-stable',
     headless: true,
@@ -148,38 +149,20 @@ async function main() {
   });
 
   try {
-    // 단계 1: 실제 URL 탐색
-    await findPlayerStatsUrls(browser);
-
-    // 단계 2: 알려진 URL들 시도 (진단용)
     const testUrls = [
-      `${BASE}/Record/Player/HitterBasic/Basic.aspx`,
-      `${BASE}/Record/Player/PitcherBasic/Basic.aspx`,
-      `${BASE}/Stats/Player/Hitter.aspx`,
-      `${BASE}/Record/Hitter/Basic.aspx`,
-      `${BASE}/Record/Player/Hitter/Basic.aspx`,
-      `${BASE}/Record/TeamRank/TeamRank.aspx`,
+      ...discovered.slice(0, 5),
+      // 추가 후보들
+      `${BASE}/Record/Player/HitterBasic/BasicOps.aspx`,
+      `${BASE}/Stats/Hitter/BasicHitting.aspx`,
+      `${BASE}/Record/Player/Hitter/BasicHitting.aspx`,
+      `${BASE}/Record/TeamRank/TeamRank.aspx`, // 기준점 (작동 확인)
     ];
-
-    console.log('\n=== URL 테스트 ===');
-    const page2 = await browser.newPage();
-    for (const url of testUrls) {
-      const html = await scrapeWithPlaywright(page2, url);
-      if (html) {
-        const rows = tableRows(html);
-        const dataRows = rows.filter(r => r.length >= 5 && /^\d+$/.test(r[0]));
-        console.log(`  데이터 행 수: ${dataRows.length}`);
-        if (dataRows.length > 0) console.log(`  샘플: ${JSON.stringify(dataRows[0])}`);
-      }
-    }
-    await page2.close();
-
+    await testWithPlaywright(browser, testUrls);
   } finally {
     await browser.close();
   }
 
-  // 데이터 수집 실패 시 빈 파일 저장 (에러 방지)
-  if (!existsSync('data')) await mkdir('data');
+  // 빈 파일 생성 (에러 방지)
   for (const code of TEAM_CODES) {
     const path = `data/players-${code}.json`;
     if (!existsSync(path)) {
@@ -190,8 +173,8 @@ async function main() {
     }
   }
 
-  console.log('\n탐색 완료. 로그를 확인하여 올바른 URL을 파악하세요.');
-  process.exit(1); // 아직 데이터 없음
+  console.log('\n탐색 완료. 로그에서 올바른 URL 확인 필요.');
+  process.exit(1);
 }
 
 main().catch(e => { console.error('오류:', e.message); process.exit(1); });

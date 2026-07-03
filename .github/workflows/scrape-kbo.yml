@@ -16,15 +16,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Find player stats links from TeamRank page
+        run: |
+          echo "=== All links in TeamRank.aspx ==="
+          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+            -H "Accept-Language: ko-KR,ko;q=0.9" \
+            "https://www.koreabaseball.com/Record/TeamRank/TeamRank.aspx" \
+            | grep -oP '(?<=href=")[^"]+(?=")' | sort -u | grep -i 'hitter\|pitcher\|player\|record\|stat' | head -40 || echo "(none)"
+          echo "=== ALL .aspx links in TeamRank.aspx ==="
+          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+            -H "Accept-Language: ko-KR,ko;q=0.9" \
+            "https://www.koreabaseball.com/Record/TeamRank/TeamRank.aspx" \
+            | grep -oP '(?<=href=")[^"]*\.aspx[^"]*(?=")' | sort -u | head -50
       - name: Install Playwright
         run: npm install playwright
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-      - name: Find Chrome
-        run: |
-          echo "=== Chrome search ==="
-          which google-chrome-stable chromium-browser chromium google-chrome 2>/dev/null || echo "not in PATH"
-          ls /usr/bin/google-chrome* /usr/bin/chromium* /snap/bin/chromium 2>/dev/null || echo "not found"
       - name: Scrape standings
         run: node scripts/scrape-standings.mjs
       - name: Scrape player stats
