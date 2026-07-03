@@ -1,7 +1,6 @@
-// KBO 선수 성적 스크래퍼 v6 — Playwright + 시스템 Chrome으로 JS 렌더링
+// KBO 선수 성적 스크래퍼 v7 — Playwright으로 KBO 홈에서 실제 URL 탐색 후 데이터 수집
 import { writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { execSync } from 'node:child_process';
 
 const BASE = 'https://www.koreabaseball.com';
 const YEAR = String(new Date().getFullYear());
@@ -12,25 +11,21 @@ const TEAM_MAP = {
 };
 const TEAM_CODES = Object.keys(TEAM_MAP);
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+// 사이트에서 실제로 쓰는 팀명 → 코드
+const SITE_TEAM_TO_CODE = {
+  'KIA':'HT', '기아':'HT',
+  '두산':'OB',
+  '삼성':'SS',
+  'LG':'LG',
+  '한화':'HH',
+  '롯데':'LT',
+  'KT':'KT',
+  'SSG':'SK',
+  'NC':'NC',
+  '키움':'WO',
+};
 
-// 시스템에 설치된 Chrome/Chromium 경로 탐색
-function findChrome() {
-  const candidates = [
-    '/usr/bin/google-chrome-stable',
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium-browser',
-    '/usr/bin/chromium',
-    '/snap/bin/chromium',
-  ];
-  for (const p of candidates) {
-    if (existsSync(p)) return p;
-  }
-  // which 명령으로도 시도
-  try {
-    return execSync('which google-chrome-stable chromium-browser chromium 2>/dev/null | head -1', { encoding: 'utf8' }).trim();
-  } catch { return null; }
-}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function stripTags(s) {
   return (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim();
@@ -50,133 +45,153 @@ function tableRows(html) {
   return rows;
 }
 
-// Playwright로 JS 렌더링 후 테이블 데이터 추출
-async function scrapeWithPlaywright(teamCode, type) {
-  const { chromium } = await import('playwright');
-  const chromePath = findChrome();
-  console.log(`  Chrome: ${chromePath || '(not found, using default)'}`);
+async function findPlayerStatsUrls(browser) {
+  const page = await browser.newPage();
+  const apiCalls = [];
 
-  const launchOpts = {
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
-  };
-  if (chromePath) launchOpts.executablePath = chromePath;
+  // 네트워크 요청 가로채기
+  page.on('request', req => {
+    const url = req.url();
+    if (req.resourceType() !== 'document' && req.resourceType() !== 'image'
+        && req.resourceType() !== 'stylesheet' && req.resourceType() !== 'font'
+        && !url.includes('google') && !url.includes('analytics')) {
+      apiCalls.push({ url, method: req.method(), type: req.resourceType() });
+    }
+  });
 
-  const browser = await chromium.launch(launchOpts);
   try {
-    const page = await browser.newPage();
-    await page.setExtraHTTPHeaders({
-      'Accept-Language': 'ko-KR,ko;q=0.9',
-    });
+    console.log('KBO 홈페이지 탐색 중...');
+    await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 20000 });
 
-    const suffix = type === 'hitter' ? 'HitterBasic/Basic.aspx' : 'PitcherBasic/Basic.aspx';
-    const url = `${BASE}/Record/Player/${suffix}?teamCode=${teamCode}&sort=${type === 'hitter' ? 'OPS' : 'ERA'}&order=${type === 'hitter' ? 'DESC' : 'ASC'}`;
+    // 네비게이션 메뉴에서 기록/선수 관련 링크 찾기
+    const navLinks = await page.$$eval('a', as =>
+      as.map(a => ({ href: a.href, text: a.textContent.trim() }))
+        .filter(l => l.href && l.href.includes('koreabaseball.com') && l.text.length > 0)
+    );
 
-    console.log(`  ${url}`);
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+    const statsLinks = navLinks.filter(l =>
+      l.text.match(/기록|선수|타자|투수|스탯|Record|Player|Hitter|Pitcher/i) ||
+      l.href.match(/Record|Player|Hitter|Pitcher|Stats/i)
+    );
+    console.log('=== 기록/선수 관련 링크 ===');
+    statsLinks.slice(0, 30).forEach(l => console.log(`  ${l.text}: ${l.href}`));
 
-    // 테이블이 로드될 때까지 대기
-    try {
-      await page.waitForSelector('table tbody tr td', { timeout: 10000 });
-    } catch {
-      // 타임아웃 — 현재 HTML에서 최선을 다해 추출
+    // 기록 페이지로 직접 이동 시도
+    const recordPage = statsLinks.find(l => l.href.includes('/Record'));
+    if (recordPage) {
+      console.log(`\n기록 페이지로 이동: ${recordPage.href}`);
+      await page.goto(recordPage.href, { waitUntil: 'domcontentloaded', timeout: 20000 });
+      const subLinks = await page.$$eval('a', as =>
+        as.map(a => ({ href: a.href, text: a.textContent.trim() }))
+          .filter(l => l.href && l.href.includes('koreabaseball.com')
+                    && (l.href.includes('Hitter') || l.href.includes('Pitcher') || l.href.includes('Player')))
+      );
+      console.log('=== 선수 기록 하위 링크 ===');
+      subLinks.slice(0, 20).forEach(l => console.log(`  ${l.text}: ${l.href}`));
     }
 
-    const html = await page.content();
+    // 전체 링크 중 .aspx 경로 추출
+    const allLinks = await page.$$eval('a', as => as.map(a => a.href));
+    const aspxLinks = [...new Set(allLinks.filter(h => h.includes('.aspx') && h.includes('koreabaseball.com')))];
+    console.log('\n=== 현재 페이지의 .aspx 링크 (최대 30개) ===');
+    aspxLinks.slice(0, 30).forEach(l => console.log('  ' + l));
 
-    if (teamCode === 'HT' && type === 'hitter') {
-      const title = await page.title();
-      console.log(`  페이지 제목: ${title}`);
-      const hasTable = html.includes('<table');
-      const hasTd = html.includes('<td');
-      console.log(`  table: ${hasTable}, td: ${hasTd}, len: ${html.length}`);
-      console.log('  HTML 샘플:', html.substring(0, 500).replace(/\n/g, ' '));
-    }
+    console.log('\n=== API/XHR 호출 감지 ===');
+    apiCalls.slice(0, 20).forEach(c => console.log(`  [${c.type}] ${c.method} ${c.url.substring(0, 100)}`));
 
-    return tableRows(html);
+    return statsLinks;
   } finally {
-    await browser.close();
+    await page.close();
   }
 }
 
-async function parseHitters(rows) {
-  // 타자 행: 0=순위 1=팀 2=선수 3=G 4=PA 5=AB 6=H 7=2B 8=3B 9=HR 10=RBI 11=R 12=SB 13=BB 14=SO 15=AVG 16=OBP 17=SLG 18=OPS
-  const players = [];
-  for (const row of rows) {
-    if (row.length < 16 || !/^\d+$/.test(row[0])) continue;
-    const name = row[2];
-    if (!name) continue;
-    const avg = parseFloat(row[15]) || 0;
-    const obp = parseFloat(row[16]) || 0;
-    const slg = parseFloat(row[17]) || 0;
-    players.push({
-      name, pos: '타자', type: 'hitter',
-      stats: {
-        G: +row[3]||0, PA: +row[4]||0, AB: +row[5]||0, H: +row[6]||0,
-        '2B': +row[7]||0, '3B': +row[8]||0, HR: +row[9]||0,
-        RBI: +row[10]||0, R: +row[11]||0, SB: +row[12]||0,
-        BB: +row[13]||0, SO: +row[14]||0,
-        AVG: avg, OBP: obp, SLG: slg,
-        OPS: parseFloat((obp+slg).toFixed(3)),
-        ISO: parseFloat((slg-avg).toFixed(3)), WAR: null,
-      },
-    });
-  }
-  return players;
-}
+async function scrapeWithPlaywright(page, url) {
+  const apiCalls = [];
+  page.on('response', async res => {
+    const u = res.url();
+    const ct = res.headers()['content-type'] || '';
+    if (ct.includes('json') && u.includes('koreabaseball')) {
+      try {
+        const body = await res.text();
+        if (body.length > 100) apiCalls.push({ url: u, body: body.substring(0, 500) });
+      } catch { /* ignore */ }
+    }
+  });
 
-async function parsePitchers(rows) {
-  // 투수 행: 0=순위 1=팀 2=선수 3=G 4=ERA 5=W 6=L 7=SV 8=HLD 9=IP 10=H 11=BB 12=HBP 13=SO 14=R 15=ER 16=WHIP
-  const players = [];
-  for (const row of rows) {
-    if (row.length < 10 || !/^\d+$/.test(row[0])) continue;
-    const name = row[2];
-    if (!name) continue;
-    players.push({
-      name, pos: '투수', type: 'pitcher',
-      stats: {
-        G: +row[3]||0, ERA: parseFloat(row[4])||0,
-        W: +row[5]||0, L: +row[6]||0, SV: +row[7]||0, HLD: +row[8]||0,
-        IP: row[9]||'0', H: +row[10]||0, BB: +row[11]||0,
-        SO: +row[13]||0, WHIP: parseFloat(row[16])||0,
-        HR: 0, QS: 0, WAR: null,
-      },
-    });
+  await page.goto(url, { waitUntil: 'networkidle', timeout: 25000 });
+
+  const title = await page.title();
+  const html = await page.content();
+  const isError = title.includes('에러') || html.includes('errorcon');
+
+  if (apiCalls.length > 0) {
+    console.log(`  JSON API 응답 감지 (${apiCalls.length}개):`);
+    apiCalls.slice(0, 3).forEach(c => console.log(`    ${c.url}\n      ${c.body.substring(0, 200)}`));
   }
-  return players;
+
+  if (!isError) {
+    console.log(`  성공: ${title} (len=${html.length})`);
+    return html;
+  }
+  console.log(`  에러 페이지: ${title}`);
+  return null;
 }
 
 async function main() {
   if (!existsSync('data')) await mkdir('data');
+  const { chromium } = await import('playwright');
 
-  // Playwright 브라우저 한 번에 하나씩 (브라우저 재사용은 복잡하므로 팀별 새 인스턴스)
-  let grandTotal = 0;
+  const browser = await chromium.launch({
+    executablePath: '/usr/bin/google-chrome-stable',
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+  });
 
-  for (const code of TEAM_CODES) {
-    console.log(`\n${code}(${TEAM_MAP[code]}) 수집 중...`);
-    try {
-      const [hitterRows, pitcherRows] = await Promise.all([
-        scrapeWithPlaywright(code, 'hitter'),
-        scrapeWithPlaywright(code, 'pitcher'),
-      ]);
+  try {
+    // 단계 1: 실제 URL 탐색
+    await findPlayerStatsUrls(browser);
 
-      const hitters = (await parseHitters(hitterRows)).sort((a,b) => (b.stats.OPS||0) - (a.stats.OPS||0));
-      const pitchers = (await parsePitchers(pitcherRows)).sort((a,b) => (a.stats.ERA||99) - (b.stats.ERA||99));
+    // 단계 2: 알려진 URL들 시도 (진단용)
+    const testUrls = [
+      `${BASE}/Record/Player/HitterBasic/Basic.aspx`,
+      `${BASE}/Record/Player/PitcherBasic/Basic.aspx`,
+      `${BASE}/Stats/Player/Hitter.aspx`,
+      `${BASE}/Record/Hitter/Basic.aspx`,
+      `${BASE}/Record/Player/Hitter/Basic.aspx`,
+      `${BASE}/Record/TeamRank/TeamRank.aspx`,
+    ];
 
-      await writeFile(
-        `data/players-${code}.json`,
-        JSON.stringify({ updatedAt: new Date().toISOString(), year: +YEAR, hitters, pitchers }, null, 2) + '\n',
-      );
-      grandTotal += hitters.length + pitchers.length;
-      console.log(`  → 타자${hitters.length} 투수${pitchers.length} 저장`);
-    } catch (e) {
-      console.log(`  ${code} 실패: ${e.message}`);
+    console.log('\n=== URL 테스트 ===');
+    const page2 = await browser.newPage();
+    for (const url of testUrls) {
+      const html = await scrapeWithPlaywright(page2, url);
+      if (html) {
+        const rows = tableRows(html);
+        const dataRows = rows.filter(r => r.length >= 5 && /^\d+$/.test(r[0]));
+        console.log(`  데이터 행 수: ${dataRows.length}`);
+        if (dataRows.length > 0) console.log(`  샘플: ${JSON.stringify(dataRows[0])}`);
+      }
     }
-    await sleep(500);
+    await page2.close();
+
+  } finally {
+    await browser.close();
   }
 
-  console.log(`\n완료: 총 ${grandTotal}명`);
-  if (grandTotal === 0) { console.error('데이터를 하나도 수집하지 못함'); process.exit(1); }
+  // 데이터 수집 실패 시 빈 파일 저장 (에러 방지)
+  if (!existsSync('data')) await mkdir('data');
+  for (const code of TEAM_CODES) {
+    const path = `data/players-${code}.json`;
+    if (!existsSync(path)) {
+      await writeFile(path, JSON.stringify({
+        updatedAt: new Date().toISOString(), year: +YEAR,
+        hitters: [], pitchers: [],
+      }, null, 2) + '\n');
+    }
+  }
+
+  console.log('\n탐색 완료. 로그를 확인하여 올바른 URL을 파악하세요.');
+  process.exit(1); // 아직 데이터 없음
 }
 
-main().catch(e => { console.error('치명 오류:', e.message, e.stack); process.exit(1); });
+main().catch(e => { console.error('오류:', e.message); process.exit(1); });
