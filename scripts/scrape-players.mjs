@@ -1,53 +1,40 @@
-// KBO 선수 성적 스크래퍼 v2
-// 전략: 팀 로스터 페이지에서 playerId 목록 추출 → 개인 성적 상세 페이지에서 현재 시즌 성적 파싱
-// standings 스크래퍼와 동일하게 koreabaseball.com에 직접 접근 (GH Actions = CORS 없음)
+// KBO 선수 성적 스크래퍼 v4 — 기록실 타자/투수 목록 페이지 직접 수집
 import { writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
 const BASE = 'https://www.koreabaseball.com';
 const YEAR = String(new Date().getFullYear());
-const CONCURRENCY = 8;   // 동시 요청 수
 
 const TEAM_MAP = {
-  HT:'Kia', OB:'Doosan', SS:'Samsung', LG:'LG', HH:'Hanwha',
-  LT:'Lotte', KT:'KT', SK:'SSG', NC:'NC', WO:'Kiwoom',
+  HT:'KIA', OB:'두산', SS:'삼성', LG:'LG', HH:'한화',
+  LT:'롯데', KT:'KT', SK:'SSG', NC:'NC', WO:'키움',
 };
 
-// ── HTTP ────────────────────────────────────────────────────────────
-async function get(url, retries = 2) {
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function get(url, retries = 3) {
   for (let i = 0; i <= retries; i++) {
     try {
       const r = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; kbo-stats-bot/2.0)' },
-        signal: AbortSignal.timeout(12000),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+          'Referer': BASE + '/',
+        },
+        signal: AbortSignal.timeout(20000),
       });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return await r.text();
     } catch (e) {
       if (i === retries) throw e;
-      await sleep(800 * (i + 1));
+      await sleep(1500 * (i + 1));
     }
   }
 }
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// 동시 실행 수 제한 풀
-async function pool(items, fn, limit) {
-  const results = [];
-  let idx = 0;
-  async function worker() {
-    while (idx < items.length) {
-      const i = idx++;
-      results[i] = await fn(items[i]).catch(e => null);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
-  return results;
-}
-
-// ── HTML 파싱 유틸 ──────────────────────────────────────────────────
 function stripTags(s) {
-  return (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').trim();
+  return (s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#\d+;/g, '').trim();
 }
 
 function tableRows(html) {
@@ -64,138 +51,117 @@ function tableRows(html) {
   return rows;
 }
 
-// ── 1단계: 팀 로스터 페이지에서 선수 목록 추출 ──────────────────────
-async function fetchRoster(teamCode) {
-  const url = `${BASE}/Team/Player/${TEAM_MAP[teamCode]}.aspx`;
-  const html = await get(url);
+// 기록실 타자 기본 목록 페이지에서 팀별 성적 수집
+async function fetchHitters(teamCode) {
   const players = [];
-  const seen = new Set();
+  const seenNames = new Set();
 
-  // playerId 링크 파싱
-  const linkRe = /href="([^"]*playerId=(\d+)[^"]*)"[^>]*>([^<]+)</gi;
-  // 행별로 포지션 파악을 위해 테이블도 파싱
-  const rows = tableRows(html);
+  for (let page = 1; page <= 3; page++) {
+    const url = `${BASE}/Record/Player/HitterBasic/Basic.aspx?teamCode=${teamCode}&sort=OPS&order=DESC&pageNo=${page}`;
+    try {
+      const html = await get(url);
 
-  // 먼저 링크에서 id+name 추출
-  const idNames = {};
-  let lm;
-  while ((lm = linkRe.exec(html))) {
-    const id = lm[2], name = lm[3].trim();
-    if (id && name && !seen.has(id)) { seen.add(id); idNames[id] = name; }
-  }
+      // 진단: 첫 팀 첫 페이지만
+      if (teamCode === 'HT' && page === 1) {
+        console.log(`\n=== HT 타자 목록 샘플 ===`);
+        console.log(html.substring(0, 2000));
+        console.log('=== 샘플 끝 ===');
+        const rows = tableRows(html);
+        console.log(`전체 tr 수: ${rows.length}`);
+        if (rows.length > 0) console.log('첫 행:', JSON.stringify(rows[0]));
+        if (rows.length > 1) console.log('두번째 행:', JSON.stringify(rows[1]));
+      }
 
-  // 테이블 행에서 id + 포지션 연결
-  for (const cells of rows) {
-    const rowText = cells.join(' ');
-    const pidM = rowText.match(/playerId=(\d+)/);
-    if (!pidM) continue;
-    const id = pidM[1];
-    if (!idNames[id]) continue;
-    const posText = cells.slice(0, 5).join(' ');
-    const isPitcher = /투수|P\b/.test(posText);
-    players.push({ id, name: idNames[id], type: isPitcher ? 'pitcher' : 'hitter' });
-  }
+      const rows = tableRows(html);
+      // 타자 성적 행: 0=순위 1=팀 2=선수 3=G 4=PA 5=AB 6=H 7=2B 8=3B 9=HR 10=RBI 11=R 12=SB 13=BB 14=SO 15=AVG 16=OBP 17=SLG 18=OPS
+      const dataRows = rows.filter(r => r.length >= 14 && /^\d+$/.test(r[0]));
+      if (dataRows.length === 0) break;
 
-  // 링크 파싱만 된 경우 (테이블 매칭 실패) — 기본값으로 추가
-  for (const [id, name] of Object.entries(idNames)) {
-    if (!players.find(p => p.id === id)) {
-      players.push({ id, name, type: null }); // 포지션 불명
+      for (const row of dataRows) {
+        const name = row[2];
+        if (!name || seenNames.has(name)) continue;
+        seenNames.add(name);
+        const avg = parseFloat(row[15]) || 0;
+        const obp = parseFloat(row[16]) || 0;
+        const slg = parseFloat(row[17]) || 0;
+        players.push({
+          name, pos: '타자', type: 'hitter',
+          stats: {
+            G: +row[3]||0, PA: +row[4]||0, AB: +row[5]||0, H: +row[6]||0,
+            '2B': +row[7]||0, '3B': +row[8]||0, HR: +row[9]||0,
+            RBI: +row[10]||0, R: +row[11]||0, SB: +row[12]||0,
+            BB: +row[13]||0, SO: +row[14]||0,
+            AVG: avg, OBP: obp, SLG: slg,
+            OPS: parseFloat((obp+slg).toFixed(3)),
+            ISO: parseFloat((slg-avg).toFixed(3)), WAR: null,
+          },
+        });
+      }
+      await sleep(300);
+    } catch (e) {
+      console.log(`  ${teamCode} 타자 p${page}: ${e.message}`);
+      break;
     }
   }
-
   return players;
 }
 
-// ── 2단계: 개인 성적 상세 페이지에서 현재 시즌 성적 파싱 ────────────
-async function fetchPlayerStats(player) {
-  // 타자/포지션 불명 → 타자 먼저 시도, 실패 시 투수 시도
-  const types = player.type === 'pitcher'
-    ? ['pitcher', 'hitter']
-    : ['hitter', 'pitcher'];
+// 기록실 투수 기본 목록 페이지에서 팀별 성적 수집
+async function fetchPitchers(teamCode) {
+  const players = [];
+  const seenNames = new Set();
 
-  for (const type of types) {
+  for (let page = 1; page <= 3; page++) {
+    const url = `${BASE}/Record/Player/PitcherBasic/Basic.aspx?teamCode=${teamCode}&sort=ERA&order=ASC&pageNo=${page}`;
     try {
-      const url = type === 'hitter'
-        ? `${BASE}/Record/Player/HitterDetail/Basic.aspx?playerId=${player.id}`
-        : `${BASE}/Record/Player/PitcherDetail/Basic.aspx?playerId=${player.id}`;
       const html = await get(url);
       const rows = tableRows(html);
-
-      // 현재 연도(YEAR) 행 찾기
-      const row = rows.find(cells => cells[0] === YEAR && cells.length >= (type === 'hitter' ? 15 : 11));
-      if (!row) continue;
-
-      if (type === 'hitter') {
-        const avg = parseFloat(row[13]) || 0;
-        const obp = parseFloat(row[14]) || 0;
-        const slg = parseFloat(row[15]) || 0;
-        return {
-          name: player.name, pos: '타자', type: 'hitter',
+      // 투수 성적 행: 0=순위 1=팀 2=선수 3=G 4=ERA 5=W 6=L 7=SV 8=HLD 9=IP 10=H 11=BB 12=HBP 13=SO 14=R 15=ER 16=WHIP
+      const dataRows = rows.filter(r => r.length >= 10 && /^\d+$/.test(r[0]));
+      if (dataRows.length === 0) break;
+      for (const row of dataRows) {
+        const name = row[2];
+        if (!name || seenNames.has(name)) continue;
+        seenNames.add(name);
+        players.push({
+          name, pos: '투수', type: 'pitcher',
           stats: {
-            G: +row[1]||0, PA: +row[2]||0, AB: +row[3]||0, H: +row[4]||0,
-            '2B': +row[5]||0, '3B': +row[6]||0, HR: +row[7]||0,
-            RBI: +row[8]||0, R: +row[9]||0, SB: +row[10]||0,
-            BB: +row[11]||0, SO: +row[12]||0,
-            AVG: avg, OBP: obp, SLG: slg,
-            OPS: parseFloat((obp + slg).toFixed(3)),
-            ISO: parseFloat((slg - avg).toFixed(3)),
-            WAR: null,
-          },
-        };
-      } else {
-        return {
-          name: player.name, pos: '투수', type: 'pitcher',
-          stats: {
-            G: +row[1]||0,
-            ERA: parseFloat(row[2])||0,
-            W: +row[3]||0, L: +row[4]||0,
-            SV: +row[5]||0, HLD: +row[6]||0,
-            IP: row[7]||'0',
-            H: +row[8]||0, BB: +row[9]||0, SO: +row[12]||0,
-            WHIP: parseFloat(row[11])||0,
+            G: +row[3]||0, ERA: parseFloat(row[4])||0,
+            W: +row[5]||0, L: +row[6]||0, SV: +row[7]||0, HLD: +row[8]||0,
+            IP: row[9]||'0', H: +row[10]||0, BB: +row[11]||0,
+            SO: +row[13]||0, WHIP: parseFloat(row[16])||0,
             HR: 0, QS: 0, WAR: null,
           },
-        };
+        });
       }
-    } catch { continue; }
+      await sleep(300);
+    } catch (e) {
+      console.log(`  ${teamCode} 투수 p${page}: ${e.message}`);
+      break;
+    }
   }
-  return null;
+  return players;
 }
 
-// ── MAIN ────────────────────────────────────────────────────────────
 async function main() {
   if (!existsSync('data')) await mkdir('data');
-
   let grandTotal = 0;
-  for (const code of Object.keys(TEAM_MAP)) {
-    process.stdout.write(`${code} 로스터 조회... `);
-    let roster;
-    try { roster = await fetchRoster(code); }
-    catch (e) { console.log(`로스터 실패: ${e.message}`); continue; }
 
-    process.stdout.write(`${roster.length}명 → 성적 수집 중... `);
-
-    // 중복 제거
-    const unique = [...new Map(roster.map(p => [p.id, p])).values()];
-    const statsAll = await pool(unique, fetchPlayerStats, CONCURRENCY);
-
-    const hitters = statsAll.filter(p => p?.type === 'hitter');
-    const pitchers = statsAll.filter(p => p?.type === 'pitcher');
-
-    // OPS 내림차순 / ERA 오름차순 정렬
-    hitters.sort((a, b) => (b.stats.OPS || 0) - (a.stats.OPS || 0));
-    pitchers.sort((a, b) => (a.stats.ERA || 99) - (b.stats.ERA || 99));
-
+  for (const [code, teamName] of Object.entries(TEAM_MAP)) {
+    process.stdout.write(`${code}(${teamName}) 수집 중... `);
+    const [hitters, pitchers] = await Promise.all([
+      fetchHitters(code),
+      fetchPitchers(code),
+    ]);
+    hitters.sort((a, b) => (b.stats.OPS||0) - (a.stats.OPS||0));
+    pitchers.sort((a, b) => (a.stats.ERA||99) - (b.stats.ERA||99));
     await writeFile(
       `data/players-${code}.json`,
       JSON.stringify({ updatedAt: new Date().toISOString(), year: +YEAR, hitters, pitchers }, null, 2) + '\n',
     );
-
-    const total = hitters.length + pitchers.length;
-    grandTotal += total;
+    grandTotal += hitters.length + pitchers.length;
     console.log(`타자${hitters.length} 투수${pitchers.length} 저장`);
-
-    await sleep(300); // 팀 간 딜레이
+    await sleep(500);
   }
 
   console.log(`\n완료: 총 ${grandTotal}명`);
