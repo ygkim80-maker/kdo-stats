@@ -16,23 +16,31 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Debug KBO Record page
+      - name: Debug alternative data sources
         run: |
-          echo "=== /Record/Player/ content ==="
-          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+          echo "=== TeamRank.aspx playerId links ==="
+          curl -sL -A "Mozilla/5.0" "https://www.koreabaseball.com/Record/TeamRank/TeamRank.aspx" \
+            | grep -oP 'playerId=\d+' | head -20 || echo "(none)"
+          echo "=== Naver Sports KBO batting ==="
+          curl -s -o /tmp/naver.html -w "HTTP %{http_code} size=%{size_download}" \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
             -H "Accept: text/html" -H "Accept-Language: ko-KR,ko;q=0.9" \
-            "https://www.koreabaseball.com/Record/Player/" | head -c 5000
+            "https://sports.news.naver.com/kbaseball/record/index.nhn?category=kbo" || true
           echo ""
-          echo "=== All aspx links on /Record/Player/ ==="
-          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-            -H "Accept: text/html" -H "Accept-Language: ko-KR,ko;q=0.9" \
-            "https://www.koreabaseball.com/Record/Player/" \
-            | grep -oP '(?<=href="|href='"'"')[^"'"'"']+\.aspx[^"'"'"']*' | head -30
-          echo "=== /Record/ main page links ==="
-          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-            -H "Accept: text/html" -H "Accept-Language: ko-KR,ko;q=0.9" \
-            "https://www.koreabaseball.com/Record/" \
-            | grep -oP '(?<=href="|href='"'"')[^"'"'"']+\.aspx[^"'"'"']*' | head -30
+          grep -o '<table[^>]*>' /tmp/naver.html | head -5 || echo "(no tables)"
+          echo "=== Naver Sports JSON API test ==="
+          curl -s -w "HTTP %{http_code}" \
+            -A "Mozilla/5.0" -H "Accept: application/json" \
+            "https://api.sports.naver.com/v1/stats/kbo/record/batting?season=2026&teamCode=HT&page=1&pageSize=5" \
+            | head -c 500 || true
+          echo ""
+          echo "=== statiz.co.kr test ==="
+          curl -s -o /tmp/statiz.html -w "HTTP %{http_code} size=%{size_download}" \
+            -A "Mozilla/5.0" \
+            "https://www.statiz.co.kr/stat.php?opt=0&sopt=0&year=2026&cid=&sid1=H01&pid=0&oid=0&rtype=3&dtype=1&sm=1&em=&pa=1" || true
+          echo ""
+          grep -c '<td' /tmp/statiz.html 2>/dev/null && echo "statiz has td elements" || echo "statiz no td"
+          head -c 200 /tmp/statiz.html
       - name: Scrape standings
         run: node scripts/scrape-standings.mjs
       - name: Scrape player stats
