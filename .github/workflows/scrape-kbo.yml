@@ -16,26 +16,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Debug KBO player URLs
+      - name: Debug KBO Record page
         run: |
-          echo "=== Testing KBO player stat URLs ==="
-          for url in \
-            "https://www.koreabaseball.com/Record/Player/HitterBasic/Basic.aspx" \
-            "https://www.koreabaseball.com/Record/Player/HitterDetail/Basic1.aspx" \
-            "https://www.koreabaseball.com/Record/Player/HitterRecord.aspx" \
-            "https://www.koreabaseball.com/Record/Hitter/Basic.aspx" \
+          echo "=== /Record/Player/ content ==="
+          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+            -H "Accept: text/html" -H "Accept-Language: ko-KR,ko;q=0.9" \
+            "https://www.koreabaseball.com/Record/Player/" | head -c 5000
+          echo ""
+          echo "=== All aspx links on /Record/Player/ ==="
+          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+            -H "Accept: text/html" -H "Accept-Language: ko-KR,ko;q=0.9" \
             "https://www.koreabaseball.com/Record/Player/" \
-            "https://www.koreabaseball.com/Record/"; do
-            echo "--- $url ---"
-            curl -s -o /tmp/resp.html -w "HTTP %{http_code} size=%{size_download}" \
-              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-              -H "Accept: text/html" -H "Accept-Language: ko-KR,ko;q=0.9" \
-              -H "Referer: https://www.koreabaseball.com/" \
-              "$url" || true
-            echo ""
-            grep -o 'href="[^"]*Record[^"]*"' /tmp/resp.html | head -5 || echo "(no record links)"
-            grep -oP '(?<=href=")[^"]*\.aspx[^"]*' /tmp/resp.html | grep -i 'player\|hitter\|pitcher' | head -10 || echo "(no player links)"
-          done
+            | grep -oP '(?<=href="|href='"'"')[^"'"'"']+\.aspx[^"'"'"']*' | head -30
+          echo "=== /Record/ main page links ==="
+          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+            -H "Accept: text/html" -H "Accept-Language: ko-KR,ko;q=0.9" \
+            "https://www.koreabaseball.com/Record/" \
+            | grep -oP '(?<=href="|href='"'"')[^"'"'"']+\.aspx[^"'"'"']*' | head -30
       - name: Scrape standings
         run: node scripts/scrape-standings.mjs
       - name: Scrape player stats
