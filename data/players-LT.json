@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-30T13:30:47.588Z",
+  "updatedAt": "2026-07-30T16:26:47.623Z",
   "year": 2026,
   "hitters": [
     {
@@ -755,90 +755,6 @@
   ],
   "pitchers": [
     {
-      "name": "윤성빈",
-      "pos": "투수",
-      "type": "pitcher",
-      "stats": {
-        "G": 4,
-        "ERA": 13.5,
-        "W": 0,
-        "L": 0,
-        "SV": 0,
-        "HLD": 0,
-        "IP": "3 1/3",
-        "H": 4,
-        "BB": 6,
-        "SO": 2,
-        "WHIP": 3,
-        "HR": 0,
-        "QS": 0,
-        "WAR": null
-      }
-    },
-    {
-      "name": "신동건",
-      "pos": "투수",
-      "type": "pitcher",
-      "stats": {
-        "G": 1,
-        "ERA": 18,
-        "W": 0,
-        "L": 0,
-        "SV": 0,
-        "HLD": 0,
-        "IP": "1",
-        "H": 1,
-        "BB": 4,
-        "SO": 1,
-        "WHIP": 5,
-        "HR": 0,
-        "QS": 0,
-        "WAR": null
-      }
-    },
-    {
-      "name": "최충연",
-      "pos": "투수",
-      "type": "pitcher",
-      "stats": {
-        "G": 1,
-        "ERA": 18,
-        "W": 0,
-        "L": 0,
-        "SV": 0,
-        "HLD": 0,
-        "IP": "1",
-        "H": 3,
-        "BB": 1,
-        "SO": 0,
-        "WHIP": 4,
-        "HR": 0,
-        "QS": 0,
-        "WAR": null
-      }
-    },
-    {
-      "name": "박세진",
-      "pos": "투수",
-      "type": "pitcher",
-      "stats": {
-        "G": 5,
-        "ERA": 33.75,
-        "W": 0,
-        "L": 0,
-        "SV": 0,
-        "HLD": 0,
-        "IP": "1 1/3",
-        "H": 7,
-        "BB": 2,
-        "SO": 1,
-        "WHIP": 6.75,
-        "HR": 1,
-        "QS": 0,
-        "WAR": null
-      }
-    },
-    {
       "name": "김기준",
       "pos": "투수",
       "type": "pitcher",
@@ -1359,6 +1275,90 @@
         "SO": 9,
         "WHIP": 1.77,
         "HR": 2,
+        "QS": 0,
+        "WAR": null
+      }
+    },
+    {
+      "name": "윤성빈",
+      "pos": "투수",
+      "type": "pitcher",
+      "stats": {
+        "G": 4,
+        "ERA": 13.5,
+        "W": 0,
+        "L": 0,
+        "SV": 0,
+        "HLD": 0,
+        "IP": "3 1/3",
+        "H": 4,
+        "BB": 6,
+        "SO": 2,
+        "WHIP": 3,
+        "HR": 0,
+        "QS": 0,
+        "WAR": null
+      }
+    },
+    {
+      "name": "신동건",
+      "pos": "투수",
+      "type": "pitcher",
+      "stats": {
+        "G": 1,
+        "ERA": 18,
+        "W": 0,
+        "L": 0,
+        "SV": 0,
+        "HLD": 0,
+        "IP": "1",
+        "H": 1,
+        "BB": 4,
+        "SO": 1,
+        "WHIP": 5,
+        "HR": 0,
+        "QS": 0,
+        "WAR": null
+      }
+    },
+    {
+      "name": "최충연",
+      "pos": "투수",
+      "type": "pitcher",
+      "stats": {
+        "G": 1,
+        "ERA": 18,
+        "W": 0,
+        "L": 0,
+        "SV": 0,
+        "HLD": 0,
+        "IP": "1",
+        "H": 3,
+        "BB": 1,
+        "SO": 0,
+        "WHIP": 4,
+        "HR": 0,
+        "QS": 0,
+        "WAR": null
+      }
+    },
+    {
+      "name": "박세진",
+      "pos": "투수",
+      "type": "pitcher",
+      "stats": {
+        "G": 5,
+        "ERA": 33.75,
+        "W": 0,
+        "L": 0,
+        "SV": 0,
+        "HLD": 0,
+        "IP": "1 1/3",
+        "H": 7,
+        "BB": 2,
+        "SO": 1,
+        "WHIP": 6.75,
+        "HR": 1,
         "QS": 0,
         "WAR": null
       }
