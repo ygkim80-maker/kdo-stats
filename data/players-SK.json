@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-04T05:44:50.094Z",
+  "updatedAt": "2026-08-04T08:22:41.011Z",
   "year": 2026,
   "hitters": [
     {
@@ -755,6 +755,90 @@
   ],
   "pitchers": [
     {
+      "name": "긴지로",
+      "pos": "투수",
+      "type": "pitcher",
+      "stats": {
+        "G": 4,
+        "ERA": 9.56,
+        "W": 0,
+        "L": 3,
+        "SV": 0,
+        "HLD": 0,
+        "IP": "16",
+        "H": 18,
+        "BB": 14,
+        "SO": 18,
+        "WHIP": 2,
+        "HR": 5,
+        "QS": 0,
+        "WAR": null
+      }
+    },
+    {
+      "name": "변건우",
+      "pos": "투수",
+      "type": "pitcher",
+      "stats": {
+        "G": 1,
+        "ERA": 18,
+        "W": 0,
+        "L": 0,
+        "SV": 0,
+        "HLD": 0,
+        "IP": "1",
+        "H": 1,
+        "BB": 2,
+        "SO": 1,
+        "WHIP": 3,
+        "HR": 0,
+        "QS": 0,
+        "WAR": null
+      }
+    },
+    {
+      "name": "신상연",
+      "pos": "투수",
+      "type": "pitcher",
+      "stats": {
+        "G": 2,
+        "ERA": 27,
+        "W": 0,
+        "L": 0,
+        "SV": 0,
+        "HLD": 0,
+        "IP": "2",
+        "H": 3,
+        "BB": 6,
+        "SO": 1,
+        "WHIP": 4.5,
+        "HR": 1,
+        "QS": 0,
+        "WAR": null
+      }
+    },
+    {
+      "name": "김택형",
+      "pos": "투수",
+      "type": "pitcher",
+      "stats": {
+        "G": 1,
+        "ERA": 40.5,
+        "W": 0,
+        "L": 0,
+        "SV": 0,
+        "HLD": 0,
+        "IP": "2/3",
+        "H": 1,
+        "BB": 2,
+        "SO": 1,
+        "WHIP": 4.5,
+        "HR": 1,
+        "QS": 0,
+        "WAR": null
+      }
+    },
+    {
       "name": "아빌라",
       "pos": "투수",
       "type": "pitcher",
@@ -1274,90 +1358,6 @@
         "BB": 13,
         "SO": 9,
         "WHIP": 2.27,
-        "HR": 1,
-        "QS": 0,
-        "WAR": null
-      }
-    },
-    {
-      "name": "긴지로",
-      "pos": "투수",
-      "type": "pitcher",
-      "stats": {
-        "G": 4,
-        "ERA": 9.56,
-        "W": 0,
-        "L": 3,
-        "SV": 0,
-        "HLD": 0,
-        "IP": "16",
-        "H": 18,
-        "BB": 14,
-        "SO": 18,
-        "WHIP": 2,
-        "HR": 5,
-        "QS": 0,
-        "WAR": null
-      }
-    },
-    {
-      "name": "변건우",
-      "pos": "투수",
-      "type": "pitcher",
-      "stats": {
-        "G": 1,
-        "ERA": 18,
-        "W": 0,
-        "L": 0,
-        "SV": 0,
-        "HLD": 0,
-        "IP": "1",
-        "H": 1,
-        "BB": 2,
-        "SO": 1,
-        "WHIP": 3,
-        "HR": 0,
-        "QS": 0,
-        "WAR": null
-      }
-    },
-    {
-      "name": "신상연",
-      "pos": "투수",
-      "type": "pitcher",
-      "stats": {
-        "G": 2,
-        "ERA": 27,
-        "W": 0,
-        "L": 0,
-        "SV": 0,
-        "HLD": 0,
-        "IP": "2",
-        "H": 3,
-        "BB": 6,
-        "SO": 1,
-        "WHIP": 4.5,
-        "HR": 1,
-        "QS": 0,
-        "WAR": null
-      }
-    },
-    {
-      "name": "김택형",
-      "pos": "투수",
-      "type": "pitcher",
-      "stats": {
-        "G": 1,
-        "ERA": 40.5,
-        "W": 0,
-        "L": 0,
-        "SV": 0,
-        "HLD": 0,
-        "IP": "2/3",
-        "H": 1,
-        "BB": 2,
-        "SO": 1,
-        "WHIP": 4.5,
         "HR": 1,
         "QS": 0,
         "WAR": null
